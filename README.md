@@ -1,38 +1,49 @@
 # Sintonia Financeira 💑💰
 
-Um aplicativo web de controle financeiro desenvolvido para a gestão do dia a dia do casal. O **Sintonia Financeira** permite registrar receitas, despesas e investimentos de forma colaborativa, facilitando o acompanhamento do orçamento familiar e o acerto de contas com sincronização em nuvem e em tempo real.
+Um aplicativo web moderno e responsivo de controle financeiro desenvolvido para facilitar a gestão do dia a dia de casais. O **Sintonia Financeira** permite registrar receitas, despesas e investimentos de forma colaborativa, com sincronização em nuvem, painéis visuais e um sistema inteligente de acerto de contas.
+
+A versão atual da aplicação funciona como um serviço real (SaaS): possui **Autenticação Segura** e **Isolamento de Dados**, permitindo que múltiplos casais utilizem o aplicativo, cada um com seu próprio banco de dados privado.
 
 ## ✨ Funcionalidades
 
-* **Sincronização em Tempo Real:** Integração nativa com Firebase Firestore. Qualquer lançamento ou edição feita aparece instantaneamente em ambos os dispositivos.
-* **Dashboard Interativo:** Gráficos dinâmicos e visuais que detalham as despesas por categoria e a proporção de gastos de cada responsável.
-* **Calculadora de Acerto de Contas:** Sistema automático que soma o total de contas compartilhadas e exibe a cota ideal (50/50) para um fechamento de mês justo.
-* **Gestão de Categorias Personalizadas:** Adição e exclusão flexível de categorias para despesas, receitas e investimentos diretamente pela aba de configurações.
-* **Extrato Completo:** Histórico de transações detalhado com filtros por tipo de fluxo e interface rápida para remoção de registros.
-* **Design Responsivo e Moderno:** Interface com estilo de aplicativo nativo (mobile-first), garantindo uma experiência fluida tanto em smartphones quanto em computadores.
+* 🔐 **Autenticação Segura:** Sistema de login e cadastro integrado (E-mail e Senha) garantindo que apenas usuários autorizados acessem as planilhas.
+* 🛡️ **Privacidade de Dados (Multi-Tenant):** Cada conta criada possui seu próprio banco de dados isolado. É impossível que um usuário acesse os dados financeiros de outro.
+* ☁️ **Sincronização em Tempo Real:** Integração nativa com o Firebase Firestore. Lançamentos feitos por um parceiro aparecem instantaneamente na tela do outro.
+* 📊 **Dashboard Interativo:** Gráficos dinâmicos que detalham as despesas por categoria e mostram quem gastou mais no mês.
+* 🧮 **Calculadora de Acerto de Contas:** Sistema automático que soma as contas compartilhadas (marcadas como "Ambos") e exibe a cota ideal (50/50) para um fechamento de mês justo.
+* 🏷️ **Gestão de Categorias:** Controle total para criar ou excluir categorias de despesas, receitas e investimentos nas configurações.
 
 ## 🛠️ Tecnologias Utilizadas
 
 * **Estrutura e Lógica:** HTML5 e JavaScript (Vanilla).
 * **Estilização:** [Tailwind CSS](https://tailwindcss.com/) (via CDN).
 * **Gráficos:** [Chart.js](https://www.chartjs.org/) (via CDN).
-* **Banco de Dados:** [Firebase Cloud Firestore](https://firebase.google.com/products/firestore) (Sincronização em nuvem).
+* **Backend as a Service (BaaS):** 
+  * [Firebase Authentication](https://firebase.google.com/docs/auth) (Gerenciamento de usuários).
+  * [Firebase Cloud Firestore](https://firebase.google.com/docs/firestore) (Banco de dados em tempo real).
 
 ## 🚀 Como Acessar e Hospedar
 
-Como a aplicação é estruturada em um modelo *Serverless* (sem servidor) e em arquivo único, a execução é extremamente rápida:
+A aplicação é *Serverless* (sem servidor) e consiste em um arquivo único `index.html`. 
 
-1. **Uso Local:** Basta baixar o repositório e abrir o arquivo `index.html` em qualquer navegador de internet.
-2. **Hospedagem Online Gratuita:** Pode ser hospedado em questão de minutos de forma pública e estável utilizando o [GitHub Pages](https://pages.github.com/) (diretamente nas configurações deste repositório) ou serviços como o [Netlify](https://www.netlify.com/).
+* **Hospedagem Online Gratuita:** Recomendado hospedar via [GitHub Pages](https://pages.github.com/) ou [Netlify](https://www.netlify.com/) para acesso rápido via celular ou computador.
 
-## ⚙️ Estrutura de Configuração do Banco de Dados
+## ⚙️ Estrutura de Configuração (Firebase)
 
-Este projeto já está apontado para um projeto Firebase ativo. Caso o código seja clonado (Fork) para a criação de um novo ambiente isolado, é necessário substituir as chaves do banco:
+Caso faça um *Fork* deste repositório para criar o seu próprio ambiente, siga os passos abaixo para configurar o backend:
 
-1. Crie um projeto gratuito no console do Firebase.
-2. Ative o banco de dados **Firestore** no painel lateral.
-3. Nas configurações do projeto, registre um App Web e copie as chaves geradas (`firebaseConfig`).
-4. Substitua o objeto de configuração nas linhas finais do script no arquivo `index.html`.
+1. Crie um projeto gratuito no [Console do Firebase](https://console.firebase.google.com/).
+2. Vá em **Authentication**, ative o método de login **E-mail/senha** e cadastre o seu primeiro usuário.
+3. Vá em **Firestore Database** e crie um banco de dados em modo de teste.
+4. Substitua as credenciais (`firebaseConfig`) no final do arquivo `index.html` com as chaves do seu projeto.
+5. **Segurança Final:** No Firestore, vá na aba de "Regras" (Rules) e aplique o código abaixo para garantir que os dados fiquem 100% privados por usuário:
 
----
-Desenvolvido com ❤️ por Iasmyn e Mateus.
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /contas_usuarios/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
