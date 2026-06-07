@@ -14,43 +14,88 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
     
-    <!-- Firebase SDK (Versão Compatível) -->
+    <!-- Firebase SDK (Adicionado módulo de Autenticação) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 relative">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
+    <!-- TELA DE LOGIN / AUTENTICAÇÃO FIREBASE -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 transition-all duration-500 hidden">
+        <div class="bg-white max-w-sm w-full rounded-3xl p-8 shadow-2xl text-center">
+            <div class="bg-emerald-100 text-emerald-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 mb-1">Sintonia Financeira</h2>
+            <p class="text-xs text-slate-500 mb-6">Acesse com a conta do casal</p>
+            
+            <form onsubmit="realizarLogin(event)" class="space-y-4">
+                <input type="email" id="app-email" placeholder="E-mail de acesso" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all">
+                <input type="password" id="app-password" placeholder="Sua senha..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all">
+                
+                <button type="submit" id="btn-login" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl py-3.5 transition-all shadow-md shadow-emerald-200">
+                    Acessar Planilha
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TELA DE CARREGAMENTO INICIAL -->
+    <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="text-center">
+            <span class="relative flex h-10 w-10 mx-auto mb-4">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-10 w-10 bg-emerald-500"></span>
+            </span>
+            <p class="text-white text-sm font-semibold tracking-wider">Conectando...</p>
+        </div>
+    </div>
+
+    <!-- Header do App (Oculto até o login) -->
+    <header id="app-header" class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm hidden opacity-0 transition-opacity duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
                 <div class="bg-emerald-500 text-white p-2 rounded-xl shadow-md shadow-emerald-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <div>
+                <div class="flex-1">
                     <h1 class="text-xl font-bold tracking-tight text-slate-900">Sintonia Financeira</h1>
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="relative flex h-2 w-2">
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Sincronizado na Nuvem</p>
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Seguro & Sincronizado</p>
                     </div>
                 </div>
+                
+                <!-- Botão de Sair Mobile -->
+                <button onclick="realizarLogout()" class="sm:hidden p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="Bloquear App">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                </button>
             </div>
             
-            <!-- Período / Filtro Rápido -->
-            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
-                <button onclick="changePeriod('all')" id="btn-period-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all">Geral</button>
-                <button onclick="changePeriod('current')" id="btn-period-current" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all">Mês Atual</button>
+            <div class="flex items-center justify-between w-full sm:w-auto gap-4">
+                <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
+                    <button onclick="changePeriod('all')" id="btn-period-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all">Geral</button>
+                    <button onclick="changePeriod('current')" id="btn-period-current" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all">Mês Atual</button>
+                </div>
+
+                <button onclick="realizarLogout()" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    Sair
+                </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        
+    <!-- Conteúdo Principal do App -->
+    <main id="app-main" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 hidden opacity-0 transition-opacity duration-500">
         <!-- Cards de Resumo Financeiro -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
@@ -241,7 +286,7 @@
                     </div>
                 </div>
 
-                <!-- Painel 3: Configurações (Nomes & Categorias) -->
+                <!-- Painel 3: Configurações -->
                 <div id="panel-config" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hidden space-y-6">
                     <div><h3 class="text-base font-bold text-slate-900">Identificação do Casal</h3></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -288,7 +333,9 @@
             appId: "1:965838899850:web:07fb88bc745bf533307b73",
             measurementId: "G-3FZ71FP3W6"
         };
+        
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
         const docRef = db.collection('appData').doc('sintonia_casal');
 
@@ -307,24 +354,99 @@
 
         let chartCategoriesObj = null;
         let chartOwnersObj = null;
+        let unsubscribeSnapshot = null;
 
-        // --- 3. INICIALIZAÇÃO & ESCUTA DA NUVEM EM TEMPO REAL ---
+        // --- 3. AUTENTICAÇÃO FIREBASE (NOVA LÓGICA) ---
         window.addEventListener('load', () => {
-            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
-            
-            // Listener em tempo real do Firebase Firestore
-            docRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    state = { ...state, ...doc.data() };
+            // O Firebase Auth "escuta" automaticamente se o usuário já fez login antes
+            auth.onAuthStateChanged((user) => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                
+                if (user) {
+                    liberarAcesso(false); 
                 } else {
-                    saveToCloud(); // Cria o documento inicial se não existir
+                    mostrarTelaLogin();
                 }
-                updateAllUI();
             });
         });
 
-        // Função para gravar dados no Firebase
+        function mostrarTelaLogin() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('app-header').classList.add('hidden');
+            document.getElementById('app-main').classList.add('hidden');
+            document.getElementById('app-email').focus();
+        }
+
+        function realizarLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login');
+            btn.innerHTML = "Verificando...";
+            btn.disabled = true;
+
+            const email = document.getElementById('app-email').value;
+            const pass = document.getElementById('app-password').value;
+            
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    btn.innerHTML = "Acessar Planilha";
+                    btn.disabled = false;
+                    document.getElementById('app-password').value = '';
+                    showToast("Login efetuado com sucesso!");
+                })
+                .catch((error) => {
+                    btn.innerHTML = "Acessar Planilha";
+                    btn.disabled = false;
+                    showToast("E-mail ou senha incorretos.", "error");
+                });
+        }
+
+        function realizarLogout() {
+            auth.signOut().then(() => {
+                location.reload(); 
+            });
+        }
+
+        function liberarAcesso(animar) {
+            const loginScreen = document.getElementById('login-screen');
+            loginScreen.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                
+                const header = document.getElementById('app-header');
+                const main = document.getElementById('app-main');
+                header.classList.remove('hidden');
+                main.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    header.classList.remove('opacity-0');
+                    main.classList.remove('opacity-0');
+                }, 50);
+                
+                iniciarSistemaFinanceiro();
+            }, animar ? 500 : 0);
+        }
+
+        function iniciarSistemaFinanceiro() {
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            
+            // Inicia o "espião" do banco de dados e guarda a referência para desligar se deslogar
+            if(unsubscribeSnapshot) unsubscribeSnapshot();
+            
+            unsubscribeSnapshot = docRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    state = { ...state, ...doc.data() };
+                } else {
+                    saveToCloud(); 
+                }
+                updateAllUI();
+            }, (error) => {
+                showToast("Erro ao conectar ao banco. Verifique as permissões.", "error");
+            });
+        }
+
         function saveToCloud() {
+            if(!auth.currentUser) return; // Só tenta salvar se estiver logado
             docRef.set({
                 transactions: state.transactions,
                 partners: state.partners,
@@ -569,7 +691,6 @@
                 });
             } else document.getElementById('no-owner-data').classList.remove('hidden');
 
-            // Rateio Justo
             const divContainer = document.getElementById('divisao-contas-container');
             const totalComum = txs.filter(t => t.type !== 'receita' && t.owner === 'Ambos').reduce((a, c) => a + c.value, 0);
             if(totalComum === 0) {
