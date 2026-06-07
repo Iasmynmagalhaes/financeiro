@@ -3,67 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sintonia Financeira - Controle de Casal</title>
-    <!-- Tailwind CSS para um visual moderno -->
+    <title>Sintonia Financeira - Nuvem</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js para o Dashboard Gráfico -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Fontes -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        /* Custom scrollbar para listas internas */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    
+    <!-- Firebase SDK (Versão Compatível) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 relative">
 
-    <!-- Input Global Oculto para Importar Arquivo de Backup -->
-    <input type="file" id="global-import-file" onchange="importData(event)" class="hidden" accept=".json">
-
     <!-- Header -->
     <header class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-emerald-500 text-white p-2.5 rounded-xl shadow-md shadow-emerald-200">
+                <div class="bg-emerald-500 text-white p-2 rounded-xl shadow-md shadow-emerald-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight text-slate-900">Sintonia Financeira</h1>
-                    <p class="text-xs text-slate-500 font-medium">Controle compartilhado em tempo real para Mateus & Iasmyn</p>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Sincronizado na Nuvem</p>
+                    </div>
                 </div>
             </div>
             
-            <!-- Indicador de Sincronização Inteligente -->
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-                <div id="cloud-status-badge" onclick="openCloudConfigModal()" class="cursor-pointer hover:bg-slate-100 transition-all flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500" id="status-dot"></span>
-                    </span>
-                    <span id="status-text">Verificando Sincronização...</span>
-                </div>
-
-                <!-- Período / Filtro Rápido -->
-                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
-                    <button onclick="changePeriod('all')" id="btn-period-all" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-600">Geral</button>
-                    <button onclick="changePeriod('current')" id="btn-period-current" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all">Mês Atual</button>
-                </div>
+            <!-- Período / Filtro Rápido -->
+            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
+                <button onclick="changePeriod('all')" id="btn-period-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all">Geral</button>
+                <button onclick="changePeriod('current')" id="btn-period-current" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all">Mês Atual</button>
             </div>
         </div>
     </header>
@@ -72,1429 +53,535 @@
         
         <!-- Cards de Resumo Financeiro -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <!-- Receitas -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition-transform hover:-translate-y-0.5">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Receita Total</p>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Receita Total</p>
                     <h3 class="text-2xl font-bold text-slate-900 mt-1" id="sum-receitas">R$ 0,00</h3>
                 </div>
                 <div class="bg-emerald-50 p-3 rounded-xl text-emerald-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                 </div>
             </div>
 
-            <!-- Despesas -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition-transform hover:-translate-y-0.5">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Despesa Total</p>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Despesa Total</p>
                     <h3 class="text-2xl font-bold text-slate-900 mt-1" id="sum-despesas">R$ 0,00</h3>
                 </div>
                 <div class="bg-rose-50 p-3 rounded-xl text-rose-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" /></svg>
                 </div>
             </div>
 
-            <!-- Investimentos -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition-transform hover:-translate-y-0.5">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Investimentos</p>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Investimentos</p>
                     <h3 class="text-2xl font-bold text-slate-900 mt-1" id="sum-investimentos">R$ 0,00</h3>
                 </div>
                 <div class="bg-indigo-50 p-3 rounded-xl text-indigo-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm-2 4h4m-4 4h4" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm-2 4h4m-4 4h4" /></svg>
                 </div>
             </div>
 
-            <!-- Saldo Líquido -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition-transform hover:-translate-y-0.5">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Final</p>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Saldo Final</p>
                     <h3 class="text-2xl font-bold mt-1 text-slate-900" id="sum-saldo">R$ 0,00</h3>
                 </div>
                 <div class="bg-blue-50 p-3 rounded-xl text-blue-500" id="saldo-icon-container">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
             </div>
         </div>
 
-        <!-- Seções: Lançamento / Dashboards / Configurações -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Coluna de Esquerda: Formulário de Lançamento Rápido -->
+            <!-- Formulário de Lançamento -->
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
                 <div class="flex items-center gap-2 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <h2 class="text-lg font-bold text-slate-900">Novo Lançamento</h2>
                 </div>
 
                 <form id="transaction-form" onsubmit="addTransaction(event)" class="space-y-4">
-                    <!-- Tipo -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Fluxo</label>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tipo</label>
                         <div class="grid grid-cols-3 gap-2">
-                            <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-semibold hover:bg-slate-50 transition-all select-none" id="label-tipo-despesa">
+                            <label class="flex items-center justify-center p-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-sm font-bold text-rose-700 cursor-pointer transition-all select-none" id="label-tipo-despesa">
                                 <input type="radio" name="type" value="despesa" checked class="sr-only" onchange="updateFormType()">
-                                <span class="text-rose-600">Despesa</span>
+                                <span>Despesa</span>
                             </label>
-                            <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-semibold hover:bg-slate-50 transition-all select-none" id="label-tipo-receita">
+                            <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-medium hover:bg-slate-50 transition-all select-none" id="label-tipo-receita">
                                 <input type="radio" name="type" value="receita" class="sr-only" onchange="updateFormType()">
                                 <span class="text-emerald-600">Receita</span>
                             </label>
-                            <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-semibold hover:bg-slate-50 transition-all select-none" id="label-tipo-investimento">
+                            <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-medium hover:bg-slate-50 transition-all select-none" id="label-tipo-investimento">
                                 <input type="radio" name="type" value="investimento" class="sr-only" onchange="updateFormType()">
-                                <span class="text-indigo-600">Invest.</span>
+                                <span class="text-indigo-600">Investimento</span>
                             </label>
                         </div>
                     </div>
 
-                    <!-- Valor & Data -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Valor (R$)</label>
-                            <input type="number" step="0.01" required id="tx-value" placeholder="0,00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Valor (R$)</label>
+                            <input type="number" step="0.01" required id="tx-value" placeholder="0,00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Data</label>
-                            <input type="date" required id="tx-date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Data</label>
+                            <input type="date" required id="tx-date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                         </div>
                     </div>
 
-                    <!-- Descrição -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Descrição</label>
-                        <input type="text" required id="tx-desc" placeholder="Ex: Compras do mês, Conta de luz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Descrição</label>
+                        <input type="text" required id="tx-desc" placeholder="Ex: Conta de luz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
 
-                    <!-- Categorias Dinâmicas -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Categoria</label>
-                        <select id="tx-category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-                            <!-- Injetado por JS baseado no tipo de transação -->
-                        </select>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Categoria</label>
+                        <select id="tx-category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></select>
                     </div>
 
-                    <!-- Quem pagou / recebeu (Casal) -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Responsável / Beneficiário</label>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Responsável</label>
                         <div class="grid grid-cols-3 gap-2">
-                            <label class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 cursor-pointer text-xs font-semibold hover:bg-slate-50 transition-all text-center select-none" id="label-owner-1">
-                                <input type="radio" name="owner" value="Mateus" checked class="sr-only">
-                                <span id="txt-owner-1" class="text-slate-700">Mateus</span>
+                            <label class="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200 cursor-pointer text-xs font-semibold hover:bg-slate-50 transition-all text-center select-none" id="label-owner-1">
+                                <input type="radio" name="owner" value="Parceiro A" checked class="sr-only">
+                                <span id="txt-owner-1" class="text-slate-700">P1</span>
                             </label>
-                            <label class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 cursor-pointer text-xs font-semibold hover:bg-slate-50 transition-all text-center select-none" id="label-owner-2">
-                                <input type="radio" name="owner" value="Iasmyn" class="sr-only">
-                                <span id="txt-owner-2" class="text-slate-700">Iasmyn</span>
+                            <label class="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200 cursor-pointer text-xs font-semibold hover:bg-slate-50 transition-all text-center select-none" id="label-owner-2">
+                                <input type="radio" name="owner" value="Parceiro B" class="sr-only">
+                                <span id="txt-owner-2" class="text-slate-700">P2</span>
                             </label>
-                            <label class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 cursor-pointer text-xs font-semibold hover:bg-slate-50 transition-all text-center select-none" id="label-owner-both">
+                            <label class="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200 cursor-pointer text-xs font-semibold hover:bg-slate-50 transition-all text-center select-none" id="label-owner-both">
                                 <input type="radio" name="owner" value="Ambos" class="sr-only">
-                                <span class="text-slate-700">Ambos (Divisão)</span>
+                                <span class="text-slate-700">Ambos</span>
                             </label>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 active:translate-y-[1px] text-white font-bold rounded-xl py-3 text-sm transition-all shadow-md shadow-emerald-200 flex items-center justify-center gap-2">
-                        <span>Adicionar Lançamento</span>
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 active:translate-y-[1px] text-white font-semibold rounded-xl py-3 text-sm transition-all shadow-md flex items-center justify-center gap-2">
+                        Salvar Lançamento
                     </button>
                 </form>
             </div>
 
-            <!-- Coluna da Direita: Dashboards e Listagem (2/3 de espaço) -->
+            <!-- Dashboards e Listagem -->
             <div class="lg:col-span-2 space-y-8">
-                
-                <!-- Abas de Navegação Direita -->
                 <div class="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex gap-2">
-                    <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600">Dashboard Visual</button>
-                    <button onclick="switchTab('historico')" id="tab-btn-historico" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Extrato Completo</button>
-                    <button onclick="switchTab('config')" id="tab-btn-config" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Configurações</button>
+                    <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm">Dashboard Visual</button>
+                    <button onclick="switchTab('historico')" id="tab-btn-historico" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Extrato</button>
+                    <button onclick="switchTab('config')" id="tab-btn-config" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Configurações</button>
                 </div>
 
                 <!-- Painel 1: Dashboard -->
                 <div id="panel-dashboard" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Card Gráfico Despesas por Categoria -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                             <h3 class="text-sm font-bold text-slate-800 mb-4">Despesas por Categoria</h3>
                             <div class="relative w-full aspect-square max-h-[250px] mx-auto flex items-center justify-center">
                                 <canvas id="chart-categories"></canvas>
-                                <div id="no-category-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-semibold hidden">
-                                    Sem despesas registradas no período.
-                                </div>
+                                <div id="no-category-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-medium hidden">Sem despesas registradas.</div>
                             </div>
                         </div>
 
-                        <!-- Card Distribuição de Custos -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-800 mb-2">Quem gastou / investiu mais?</h3>
-                                <p class="text-xs text-slate-400 font-medium mb-4">Divisão de saídas acumuladas entre o casal.</p>
+                                <h3 class="text-sm font-bold text-slate-800 mb-2">Divisão de Saídas</h3>
                             </div>
                             <div class="relative w-full aspect-square max-h-[180px] mx-auto flex items-center justify-center">
                                 <canvas id="chart-owners"></canvas>
-                                <div id="no-owner-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-semibold hidden">
-                                    Sem dados no período.
-                                </div>
+                                <div id="no-owner-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-medium hidden">Sem dados.</div>
                             </div>
-                            <div class="mt-4 pt-4 border-t border-slate-50 grid grid-cols-3 text-center text-xs text-slate-500 font-semibold gap-1">
-                                <div>
-                                    <span id="txt-legend-p1" class="block text-[10px] text-slate-400 uppercase tracking-wider">Mateus</span>
-                                    <span id="stat-p1" class="text-slate-900 font-bold">R$ 0,00</span>
-                                </div>
-                                <div>
-                                    <span id="txt-legend-p2" class="block text-[10px] text-slate-400 uppercase tracking-wider">Iasmyn</span>
-                                    <span id="stat-p2" class="text-slate-900 font-bold">R$ 0,00</span>
-                                </div>
-                                <div>
-                                    <span class="block text-[10px] text-slate-400 uppercase tracking-wider">Ambos</span>
-                                    <span id="stat-both" class="text-slate-900 font-bold">R$ 0,00</span>
-                                </div>
+                            <div class="mt-4 pt-4 border-t border-slate-50 grid grid-cols-3 text-center text-xs text-slate-500 gap-1">
+                                <div><span id="txt-legend-p1" class="block text-[10px] text-slate-400">P1</span><span id="stat-p1" class="text-slate-900 font-bold">R$ 0,00</span></div>
+                                <div><span id="txt-legend-p2" class="block text-[10px] text-slate-400">P2</span><span id="stat-p2" class="text-slate-900 font-bold">R$ 0,00</span></div>
+                                <div><span class="block text-[10px] text-slate-400">Ambos</span><span id="stat-both" class="text-slate-900 font-bold">R$ 0,00</span></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Divisão Justa ou Simplificação de Contas -->
                     <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 p-5 rounded-2xl">
                         <div class="flex items-start gap-3">
-                            <div class="p-2.5 bg-emerald-500 text-white rounded-xl shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                            </div>
+                            <div class="p-2 bg-emerald-500 text-white rounded-xl"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg></div>
                             <div class="flex-1">
-                                <h4 class="text-sm font-bold text-slate-900">Calculadora de Acerto de Contas</h4>
-                                <p class="text-xs text-slate-500 mt-1 leading-relaxed font-medium">Calcula automaticamente a parcela justa de despesas em comum, dividindo meio a meio ou de forma proporcional às receitas declaradas por cada um no período.</p>
-                                <div id="divisao-contas-container" class="mt-4 space-y-2 text-sm font-semibold">
-                                    <!-- Gerado via Javascript -->
-                                </div>
+                                <h4 class="text-sm font-bold text-slate-900">Acerto de Contas</h4>
+                                <div id="divisao-contas-container" class="mt-4 space-y-2 text-sm font-semibold"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Painel 2: Extrato / Histórico -->
+                <!-- Painel 2: Histórico -->
                 <div id="panel-historico" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hidden">
                     <div class="p-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-900">Histórico de Transações</h3>
-                            <p class="text-xs text-slate-400 mt-0.5 font-medium">Visualize, pesquise, remova ou exporte os lançamentos.</p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                            <input type="text" id="tx-search" oninput="renderTable()" placeholder="Buscar..." class="flex-1 sm:flex-none sm:w-40 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                            <select id="tx-filter-type" onchange="renderTable()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 font-bold focus:outline-none">
+                        <h3 class="text-base font-bold text-slate-900">Histórico de Transações</h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <select id="tx-filter-type" onchange="renderTable()" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 focus:outline-none">
                                 <option value="todos">Todos</option>
                                 <option value="despesa">Despesas</option>
                                 <option value="receita">Receitas</option>
                                 <option value="investimento">Investimentos</option>
                             </select>
-                            
-                            <!-- Botões de Ação de Backup no Extrato -->
-                            <div class="flex items-center gap-1.5 ml-auto w-full sm:w-auto justify-end">
-                                <button onclick="triggerImport()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5" title="Importar Backup do Sistema">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                    </svg>
-                                    Importar Backup (JSON)
-                                </button>
-                                <button onclick="exportToCSV()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5" title="Exportar para Excel / Google Sheets">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    Exportar Planilha (CSV)
-                                </button>
-                            </div>
                         </div>
                     </div>
-
-                    <!-- Tabela de Lançamentos -->
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse border-spacing-0">
+                        <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                    <th class="py-3.5 px-6">Data</th>
-                                    <th class="py-3.5 px-6">Descrição</th>
-                                    <th class="py-3.5 px-6">Categoria</th>
-                                    <th class="py-3.5 px-6">Responsável</th>
-                                    <th class="py-3.5 px-6 text-right">Valor</th>
-                                    <th class="py-3.5 px-6 text-center">Ações</th>
+                                    <th class="py-3 px-6">Data</th><th class="py-3 px-6">Descrição</th><th class="py-3 px-6">Categoria</th><th class="py-3 px-6">Responsável</th><th class="py-3 px-6 text-right">Valor</th><th class="py-3 px-6 text-center">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="transactions-tbody" class="divide-y divide-slate-100 text-sm">
-                                <!-- Conteúdo gerado dinamicamente -->
-                            </tbody>
+                            <tbody id="transactions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
                         </table>
                     </div>
-                    <div id="empty-state-table" class="p-12 text-center hidden animate-pulse">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <p class="text-sm font-bold text-slate-500">Nenhum lançamento encontrado</p>
-                        <p class="text-xs text-slate-400 mt-1 font-medium">Experimente mudar o filtro ou cadastrar novas contas.</p>
+                    <div id="empty-state-table" class="p-12 text-center hidden">
+                        <p class="text-sm font-semibold text-slate-500">Nenhum lançamento encontrado</p>
                     </div>
                 </div>
 
-                <!-- Painel 3: Configurações & Categorias -->
+                <!-- Painel 3: Configurações (Nomes & Categorias) -->
                 <div id="panel-config" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hidden space-y-6">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900 mb-1">Configurações Gerais</h3>
-                        <p class="text-xs text-slate-400 font-medium">Personalize os nomes dos parceiros, edite categorias de fluxo e realize backups de segurança.</p>
-                    </div>
-
-                    <div class="border-t border-slate-100 pt-5 space-y-4">
-                        <h4 class="text-sm font-bold text-slate-800">Nomes do Casal</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-500 font-bold mb-1.5">Nome do Parceiro(a) A</label>
-                                <input type="text" id="cfg-p1-name" onchange="updatePartnerNames()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-500 font-bold mb-1.5">Nome do Parceiro(a) B</label>
-                                <input type="text" id="cfg-p2-name" onchange="updatePartnerNames()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-slate-100 pt-5 space-y-4">
+                    <div><h3 class="text-base font-bold text-slate-900">Identificação do Casal</h3></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <h4 class="text-sm font-bold text-slate-800">Gerenciar Categorias de Fluxo</h4>
-                            <p class="text-xs text-slate-400 mt-0.5 font-medium">Adicione novas categorias ou exclua aquelas que vocês não costumam utilizar.</p>
+                            <label class="block text-xs text-slate-500 font-semibold mb-1.5">Parceiro(a) A</label>
+                            <input type="text" id="cfg-p1-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none">
                         </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Tipo de Fluxo -->
-                            <div class="md:col-span-1">
-                                <label class="block text-xs text-slate-500 font-bold mb-1.5">Tipo de Fluxo</label>
-                                <select id="cfg-cat-type" onchange="renderConfigCategories()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                                    <option value="despesa">Despesas</option>
-                                    <option value="receita">Receitas</option>
-                                    <option value="investimento">Investimentos</option>
-                                </select>
-                            </div>
-                            <!-- Adicionar Nova Categoria -->
-                            <div class="md:col-span-2">
-                                <label class="block text-xs text-slate-500 font-bold mb-1.5">Nova Categoria</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="cfg-new-cat" placeholder="Ex: Viagens, Academia, Assinaturas" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
-                                    <button onclick="addCustomCategory()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                                        Adicionar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lista de Categorias Atuais -->
-                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-150">
-                            <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Categorias Atuais</span>
-                            <ul id="cfg-cat-list" class="divide-y divide-slate-200 text-xs max-h-48 overflow-y-auto pr-1">
-                                <!-- Elementos injetados por Javascript -->
-                            </ul>
+                        <div>
+                            <label class="block text-xs text-slate-500 font-semibold mb-1.5">Parceiro(a) B</label>
+                            <input type="text" id="cfg-p2-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none">
                         </div>
                     </div>
+                    <button onclick="updatePartnerNames()" class="px-4 py-2 bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg">Salvar Nomes</button>
 
-                    <!-- Exportação e Segurança de Dados -->
-                    <div class="border-t border-slate-100 pt-5 space-y-4">
-                        <h4 class="text-sm font-bold text-slate-800">Exportação e Segurança dos Dados</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed font-medium">Vocês são donos absolutos dos dados. Use os botões abaixo para gerenciar cópias físicas e backups preventivos fora da nuvem.</p>
-                        
-                        <div class="flex flex-wrap gap-2 pt-2">
-                            <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                Exportar Planilha (CSV)
-                            </button>
-                            <button onclick="exportData()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Exportar Backup (JSON)
-                            </button>
-                            <button onclick="triggerImport()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                Importar Backup (JSON)
-                            </button>
-                            <button onclick="clearAllData()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Limpar Planilha
-                            </button>
+                    <div class="border-t border-slate-100 pt-5">
+                        <h4 class="text-sm font-bold text-slate-900 mb-4">Gerenciar Categorias</h4>
+                        <div class="flex gap-2 mb-4">
+                            <select id="new-cat-type" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                                <option value="despesa">Despesa</option>
+                                <option value="receita">Receita</option>
+                                <option value="investimento">Investimento</option>
+                            </select>
+                            <input type="text" id="new-cat-name" placeholder="Nome da categoria" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                            <button onclick="addCategory()" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Adicionar</button>
                         </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="categories-lists-container"></div>
                     </div>
                 </div>
 
             </div>
-
         </div>
-
     </main>
 
-    <!-- Modal do Configuração de Nuvem Própria -->
-    <div id="cloud-config-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 hidden transition-all">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4 border-b border-slate-150 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                    </svg>
-                    Sincronização em Nuvem do Casal
-                </h3>
-                <button onclick="closeCloudConfigModal()" class="text-slate-400 hover:text-slate-600 p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="space-y-4 text-xs font-semibold text-slate-600">
-                <p class="leading-relaxed text-slate-700">Se vocês hospedarem este arquivo no Netlify ou GitHub Pages, podem conectá-lo ao próprio servidor do Google (Firebase) de forma **totalmente gratuita** para ter sincronização automática entre dispositivos.</p>
-                
-                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <p class="font-bold text-slate-800 mb-1">Como Ativar:</p>
-                    <ol class="list-decimal pl-4 space-y-1 leading-relaxed">
-                        <li>Crie uma conta em <a href="https://firebase.google.com" target="_blank" class="text-emerald-600 underline">firebase.google.com</a>.</li>
-                        <li>Crie um novo projeto chamado "Sintonia Financeira".</li>
-                        <li>Ative a opção **Firestore Database** e selecione o modo de teste ou regras públicas.</li>
-                        <li>Ative o **Anonymous Authentication** na aba Auth.</li>
-                        <li>Adicione um app da Web nas configurações e cole as chaves do seu projeto abaixo.</li>
-                    </ol>
-                </div>
-
-                <div class="space-y-2 pt-2">
-                    <label class="block text-slate-700 font-bold">Configuração JSON do seu Firebase:</label>
-                    <textarea id="cloud-json-config" placeholder='Exemplo:
-{
-  "apiKey": "AIzaSy...",
-  "authDomain": "seu-app.firebaseapp.com",
-  "projectId": "seu-app",
-  "storageBucket": "seu-app.appspot.com",
-  "messagingSenderId": "123456...",
-  "appId": "1:1234..."
-}' class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 h-32 font-mono text-[10px] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"></textarea>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-2.5">
-                <button onclick="clearCustomCloudConfig()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-lg transition-all">
-                    Remover Conexão
-                </button>
-                <button onclick="saveCustomCloudConfig()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all shadow-md shadow-emerald-200">
-                    Salvar e Conectar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Componente Customizado de Toasts (Notificações Flutuantes) -->
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
-    <!-- Componente Customizado de Modal de Confirmação (Substitui confirm()) -->
-    <div id="confirm-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 hidden transition-all">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 transform scale-100 transition-all">
-            <div class="flex items-start gap-4">
-                <div class="p-2.5 bg-rose-50 text-rose-500 rounded-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-base font-bold text-slate-900">Confirmar Ação</h3>
-                    <p id="confirm-modal-message" class="text-xs text-slate-500 mt-2 leading-relaxed font-medium">Você tem certeza que deseja realizar essa ação?</p>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end gap-2.5">
-                <button onclick="closeConfirmModal(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-all">
-                    Cancelar
-                </button>
-                <button onclick="closeConfirmModal(true)" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-all">
-                    Confirmar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Importações Firebase por Módulo -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, query, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Categorias padrões do sistema
-        const DEFAULT_CATEGORIES = {
-            despesa: [
-                "Moradia (Aluguel/Financiamento)",
-                "Contas Básicas (Luz, Água, Gás)",
-                "Alimentação & Supermercado",
-                "Assinaturas & Lazer (Netflix, Cinema)",
-                "Restaurantes & Deliveries",
-                "Transporte & Combustível",
-                "Saúde & Convênio",
-                "Compras Pessoais & Vestuário",
-                "Educação",
-                "Pets",
-                "Outras Despesas"
-            ],
-            receita: [
-                "Salário / Pró-labore",
-                "Renda Extra",
-                "Rendimentos / Investimentos",
-                "Outras Receitas"
-            ],
-            investimento: [
-                "Reserva de Emergência",
-                "Investimentos Longo Prazo",
-                "Bolsa de Valores (Ações/FIIs)",
-                "Renda Fixa / Tesouro Direto"
-            ]
+    <script>
+        // --- 1. CONFIGURAÇÃO FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-38GdhZQW-bs15nXsZq605UC-ct79nGE",
+            authDomain: "sintonia-financeira.firebaseapp.com",
+            projectId: "sintonia-financeira",
+            storageBucket: "sintonia-financeira.firebasestorage.app",
+            messagingSenderId: "965838899850",
+            appId: "1:965838899850:web:07fb88bc745bf533307b73",
+            measurementId: "G-3FZ71FP3W6"
         };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const docRef = db.collection('appData').doc('sintonia_casal');
 
-        // Dados Iniciais Fictícios
-        const defaultTransactions = [
-            { id: "1", type: "receita", desc: "Salário", value: 4500.00, category: "Salário / Pró-labore", date: new Date().toISOString().substring(0, 7) + "-05", owner: "Mateus" },
-            { id: "2", type: "receita", desc: "Salário", value: 4800.00, category: "Salário / Pró-labore", date: new Date().toISOString().substring(0, 7) + "-05", owner: "Iasmyn" },
-            { id: "3", type: "despesa", desc: "Aluguel & Condomínio", value: 2400.00, category: "Moradia (Aluguel/Financiamento)", date: new Date().toISOString().substring(0, 7) + "-10", owner: "Ambos" },
-            { id: "4", type: "despesa", desc: "Supermercado Semanal", value: 650.00, category: "Alimentação & Supermercado", date: new Date().toISOString().substring(0, 7) + "-12", owner: "Mateus" },
-            { id: "5", type: "despesa", desc: "Conta de Energia", value: 180.00, category: "Contas Básicas (Luz, Água, Gás)", date: new Date().toISOString().substring(0, 7) + "-15", owner: "Ambos" },
-            { id: "6", type: "despesa", desc: "Jantar Romântico", value: 250.00, category: "Restaurantes & Deliveries", date: new Date().toISOString().substring(0, 7) + "-16", owner: "Iasmyn" },
-            { id: "7", type: "investimento", desc: "Reserva de Emergência", value: 1000.00, category: "Reserva de Emergência", date: new Date().toISOString().substring(0, 7) + "-08", owner: "Ambos" }
-        ];
-
-        // Estado Global da Aplicação
+        // --- 2. ESTADO DO SISTEMA ---
         let state = {
             transactions: [],
             partners: { p1: "Mateus", p2: "Iasmyn" },
-            categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
-            currentTab: 'dashboard',
-            period: 'current'
+            categories: {
+                despesa: ["Moradia", "Alimentação", "Transporte", "Saúde", "Lazer", "Outros"],
+                receita: ["Salário", "Renda Extra", "Outros"],
+                investimento: ["Reserva de Emergência", "Ações/FIIs", "Renda Fixa"]
+            },
+            period: 'current',
+            currentTab: 'dashboard'
         };
 
-        // Instâncias de Gráficos
         let chartCategoriesObj = null;
         let chartOwnersObj = null;
 
-        // Variáveis de Banco de Dados
-        let db = null;
-        let auth = null;
-        let isCloudMode = false;
-        let activeConfirmCallback = null;
-
-        // Id do App fornecido pela plataforma ou padrão do casal
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sintonia-financeira-casal';
-
-        // Inicialização de Banco de Dados (Detecta se tem credenciais locais ou da plataforma)
-        async function initFirebase() {
-            let firebaseConfig = null;
-
-            if (typeof __firebase_config !== 'undefined') {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } else {
-                try {
-                    firebaseConfig = JSON.parse(localStorage.getItem('sintonia_custom_firebase'));
-                } catch (e) {}
-            }
-
-            if (firebaseConfig) {
-                try {
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-
-                    // Autenticação anônima obrigatória
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-
-                    isCloudMode = true;
-                    updateCloudStatusBadge(true, "Conectado em Nuvem (Automático)");
-                    setupRealtimeSyncListeners();
-                } catch (err) {
-                    console.error("Erro Firebase:", err);
-                    isCloudMode = false;
-                    updateCloudStatusBadge(false, "Modo Offline (Falha de Conexão)");
-                }
-            } else {
-                isCloudMode = false;
-                updateCloudStatusBadge(false, "Modo Local (Clique para Ativar Nuvem)");
-                loadLocalStorageState();
-            }
-        }
-
-        // Função auxiliar para atualizar o marcador de status da nuvem
-        function updateCloudStatusBadge(connected, text) {
-            const dot = document.getElementById('status-dot');
-            const badge = document.getElementById('cloud-status-badge');
-            const label = document.getElementById('status-text');
-
-            label.innerText = text;
-
-            if (connected) {
-                dot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
-                badge.className = "cursor-pointer hover:bg-emerald-50 transition-all flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-100 bg-emerald-50 text-xs font-bold text-emerald-700";
-            } else {
-                dot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
-                badge.className = "cursor-pointer hover:bg-amber-50 transition-all flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-100 bg-amber-50 text-xs font-bold text-amber-700";
-            }
-        }
-
-        // Carrega as informações locais se não houver nuvem configurada
-        function loadLocalStorageState() {
-            const localData = localStorage.getItem('sintonia_financeira_v2');
-            if (localData) {
-                state = JSON.parse(localData);
-                if (!state.categories) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-            } else {
-                state.transactions = defaultTransactions;
-                state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-                saveStateToLocalStorage();
-            }
-            updatePartnerDOM();
-            updateFormType();
-            calculateAndRender();
-        }
-
-        // Salvar local se offline
-        function saveStateToLocalStorage() {
-            localStorage.setItem('sintonia_financeira_v2', JSON.stringify(state));
-        }
-
-        // Ouvintes em tempo real para sincronização automática via Firestore
-        function setupRealtimeSyncListeners() {
-            // Ouvinte de Configurações do Casal (Categorias e Nomes)
-            const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
-            onSnapshot(settingsDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const cloudSettings = docSnap.data();
-                    state.partners = cloudSettings.partners || state.partners;
-                    state.categories = cloudSettings.categories || state.categories;
-                    updatePartnerDOM();
-                    updateFormType();
-                    calculateAndRender();
-                    renderConfigCategories();
-                } else {
-                    // Salvar valores iniciais se for o primeiro acesso na nuvem
-                    setDoc(settingsDocRef, {
-                        partners: state.partners,
-                        categories: state.categories
-                    });
-                }
-            }, (error) => {
-                console.error("Erro ao sincronizar configurações:", error);
-            });
-
-            // Ouvinte da coleção de lançamentos
-            const transactionsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
-            onSnapshot(transactionsColRef, (querySnapshot) => {
-                const cloudTxs = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    cloudTxs.push({ id: doc.id, ...data });
-                });
-                
-                // Ordenar transações do mais novo para o mais antigo em memória
-                cloudTxs.sort((a, b) => b.id.localeCompare(a.id));
-                state.transactions = cloudTxs;
-                calculateAndRender();
-                if (state.currentTab === 'historico') {
-                    renderTable();
-                }
-            }, (error) => {
-                console.error("Erro ao sincronizar transações:", error);
-                showToast("Erro de sincronização. Usando dados locais.", "error");
-            });
-        }
-
-        // Cadastrar Novo Lançamento
-        async function addTransaction(e) {
-            e.preventDefault();
-
-            const type = document.querySelector('input[name="type"]:checked').value;
-            const value = parseFloat(document.getElementById('tx-value').value);
-            const date = document.getElementById('tx-date').value;
-            const desc = document.getElementById('tx-desc').value.trim();
-            const category = document.getElementById('tx-category').value;
-            const owner = document.querySelector('input[name="owner"]:checked').value;
-
-            if (!desc || isNaN(value) || !date || !category) return;
-
-            const newTx = {
-                type,
-                value,
-                date,
-                desc,
-                category,
-                owner
-            };
-
-            if (isCloudMode && db) {
-                try {
-                    // ID do documento será o timestamp para ordenação simples
-                    const customId = String(Date.now());
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', customId), newTx);
-                    showToast("Enviado para Nuvem Compartilhada!", "success");
-                } catch (err) {
-                    showToast("Erro ao sincronizar na nuvem.", "error");
-                }
-            } else {
-                newTx.id = String(Date.now());
-                state.transactions.unshift(newTx);
-                saveStateToLocalStorage();
-                calculateAndRender();
-                showToast("Lançamento adicionado (Modo Local)!", "success");
-            }
-
-            // Reset do Formulário
-            document.getElementById('tx-desc').value = '';
-            document.getElementById('tx-value').value = '';
+        // --- 3. INICIALIZAÇÃO & ESCUTA DA NUVEM EM TEMPO REAL ---
+        window.addEventListener('load', () => {
             document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
-        }
-
-        // Remover Lançamento
-        async function deleteTransaction(id) {
-            showConfirmModal("Deseja mesmo remover permanentemente esse lançamento?", async () => {
-                if (isCloudMode && db) {
-                    try {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', String(id)));
-                        showToast("Removido da nuvem compartillhada!", "info");
-                    } catch (err) {
-                        showToast("Falha ao deletar da nuvem.", "error");
-                    }
+            
+            // Listener em tempo real do Firebase Firestore
+            docRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    state = { ...state, ...doc.data() };
                 } else {
-                    state.transactions = state.transactions.filter(t => t.id !== String(id));
-                    saveStateToLocalStorage();
-                    calculateAndRender();
-                    if (state.currentTab === 'historico') {
-                        renderTable();
-                    }
-                    showToast("Lançamento removido localmente.", "info");
+                    saveToCloud(); // Cria o documento inicial se não existir
                 }
+                updateAllUI();
             });
+        });
+
+        // Função para gravar dados no Firebase
+        function saveToCloud() {
+            docRef.set({
+                transactions: state.transactions,
+                partners: state.partners,
+                categories: state.categories
+            }).catch(error => showToast("Erro de sincronização!", "error"));
         }
 
-        // Atualizar Categorias e Nomes no Banco / Memória Local
-        async function saveSettings() {
-            if (isCloudMode && db) {
-                try {
-                    const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
-                    await setDoc(settingsDocRef, {
-                        partners: state.partners,
-                        categories: state.categories
-                    });
-                } catch (err) {
-                    console.error("Erro ao sincronizar configurações:", err);
-                }
-            } else {
-                saveStateToLocalStorage();
-            }
-        }
-
-        // Adicionar Categoria Customizada
-        window.addCustomCategory = function() {
-            const type = document.getElementById('cfg-cat-type').value;
-            const newCatInput = document.getElementById('cfg-new-cat');
-            const newCatValue = newCatInput.value.trim();
-
-            if (!newCatValue) {
-                showToast("Por favor, digite o nome da categoria.", "error");
-                return;
-            }
-
-            if (state.categories[type].some(cat => cat.toLowerCase() === newCatValue.toLowerCase())) {
-                showToast("Esta categoria já existe!", "error");
-                return;
-            }
-
-            state.categories[type].push(newCatValue);
-            saveSettings();
+        // --- 4. FUNÇÕES DE INTERFACE ---
+        function updateAllUI() {
+            document.getElementById('cfg-p1-name').value = state.partners.p1;
+            document.getElementById('cfg-p2-name').value = state.partners.p2;
             
-            newCatInput.value = '';
-            renderConfigCategories();
-            updateFormType();
-            showToast("Categoria cadastrada com sucesso!", "success");
-        }
-
-        // Remover Categoria Customizada
-        window.deleteCustomCategory = function(type, categoryName) {
-            showConfirmModal(`Tem certeza que deseja remover a categoria "${categoryName}"?`, () => {
-                state.categories[type] = state.categories[type].filter(cat => cat !== categoryName);
-                saveSettings();
-                renderConfigCategories();
-                updateFormType();
-                showToast("Categoria removida.", "info");
-            });
-        }
-
-        // Renderiza lista de categorias no painel
-        window.renderConfigCategories = function() {
-            const type = document.getElementById('cfg-cat-type').value;
-            const listContainer = document.getElementById('cfg-cat-list');
-            listContainer.innerHTML = '';
-
-            if (!state.categories || !state.categories[type] || state.categories[type].length === 0) {
-                listContainer.innerHTML = `<li class="py-3 text-slate-400 text-center font-bold">Nenhuma categoria registrada.</li>`;
-                return;
-            }
-
-            state.categories[type].forEach(cat => {
-                const li = document.createElement('li');
-                li.className = "flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0";
-                li.innerHTML = `
-                    <span class="text-slate-700 font-bold">${cat}</span>
-                    <button onclick="deleteCustomCategory('${type}', '${cat}')" class="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-slate-100 rounded-lg transition-all" title="Remover Categoria">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
-                `;
-                listContainer.appendChild(li);
-            });
-        }
-
-        // Atualização de nomes dos parceiros
-        window.updatePartnerNames = function() {
-            const p1Val = document.getElementById('cfg-p1-name').value.trim();
-            const p2Val = document.getElementById('cfg-p2-name').value.trim();
-
-            if (p1Val && p2Val) {
-                state.transactions.forEach(t => {
-                    if (t.owner === state.partners.p1) t.owner = p1Val;
-                    else if (t.owner === state.partners.p2) t.owner = p2Val;
-                });
-
-                state.partners.p1 = p1Val;
-                state.partners.p2 = p2Val;
-                saveSettings();
-                updatePartnerDOM();
-                calculateAndRender();
-                showToast("Identificação dos parceiros atualizada!", "success");
-            } else {
-                showToast("Por favor, digite ambos os nomes.", "error");
-            }
-        }
-
-        // Formatação de Moeda
-        function formatCurrency(val) {
-            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        // Filtragem por Período
-        function getFilteredTransactions() {
-            if (state.period === 'all') {
-                return state.transactions;
-            }
-            
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth();
-
-            return state.transactions.filter(t => {
-                const tDate = new Date(t.date + "T00:00:00");
-                return tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth;
-            });
-        }
-
-        // Renderizador de Dashboard Geral e de Contas
-        function calculateAndRender() {
-            const txs = getFilteredTransactions();
-
-            let receitas = 0;
-            let despesas = 0;
-            let investimentos = 0;
-
-            txs.forEach(t => {
-                if (t.type === 'receita') receitas += t.value;
-                else if (t.type === 'despesa') despesas += t.value;
-                else if (t.type === 'investimento') investimentos += t.value;
-            });
-
-            const saldo = receitas - despesas - investimentos;
-
-            document.getElementById('sum-receitas').innerText = formatCurrency(receitas);
-            document.getElementById('sum-despesas').innerText = formatCurrency(despesas);
-            document.getElementById('sum-investimentos').innerText = formatCurrency(investimentos);
-            
-            const saldoEl = document.getElementById('sum-saldo');
-            saldoEl.innerText = formatCurrency(saldo);
-            
-            const iconContainer = document.getElementById('saldo-icon-container');
-            if (saldo >= 0) {
-                saldoEl.className = "text-2xl font-bold mt-1 text-emerald-600";
-                iconContainer.className = "bg-emerald-50 p-3 rounded-xl text-emerald-500";
-            } else {
-                saldoEl.className = "text-2xl font-bold mt-1 text-rose-600";
-                iconContainer.className = "bg-rose-50 p-3 rounded-xl text-rose-500";
-            }
-
-            // Gráfico Despesas Categorias
-            const despesasTxs = txs.filter(t => t.type === 'despesa');
-            const categorySums = {};
-            despesasTxs.forEach(t => {
-                categorySums[t.category] = (categorySums[t.category] || 0) + t.value;
-            });
-            renderCategoryChart(categorySums);
-
-            // Gráfico Divisão de Custos (Saídas)
-            const outflows = txs.filter(t => t.type === 'despesa' || t.type === 'investimento');
-            let p1Sum = 0;
-            let p2Sum = 0;
-            let bothSum = 0;
-
-            outflows.forEach(t => {
-                if (t.owner === state.partners.p1) p1Sum += t.value;
-                else if (t.owner === state.partners.p2) p2Sum += t.value;
-                else bothSum += t.value;
-            });
-
-            document.getElementById('stat-p1').innerText = formatCurrency(p1Sum);
-            document.getElementById('stat-p2').innerText = formatCurrency(p2Sum);
-            document.getElementById('stat-both').innerText = formatCurrency(bothSum);
-
-            renderOwnersChart(p1Sum, p2Sum, bothSum);
-            calculateSplitJust(txs, p1Sum, p2Sum, bothSum);
-        }
-
-        function renderCategoryChart(categorySums) {
-            const ctx = document.getElementById('chart-categories').getContext('2d');
-            const placeholder = document.getElementById('no-category-data');
-
-            const labels = Object.keys(categorySums);
-            const data = Object.values(categorySums);
-
-            if (data.length === 0) {
-                placeholder.classList.remove('hidden');
-                if (chartCategoriesObj) chartCategoriesObj.destroy();
-                return;
-            } else {
-                placeholder.classList.add('hidden');
-            }
-
-            if (chartCategoriesObj) {
-                chartCategoriesObj.destroy();
-            }
-
-            chartCategoriesObj = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: [
-                            '#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', 
-                            '#ec4899', '#14b8a6', '#6366f1', '#06b6d4', '#a855f7'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 10,
-                                font: { size: 10, family: 'Plus Jakarta Sans', weight: '600' },
-                                padding: 8
-                            }
-                        }
-                    },
-                    cutout: '65%'
-                }
-            });
-        }
-
-        function renderOwnersChart(p1, p2, both) {
-            const ctx = document.getElementById('chart-owners').getContext('2d');
-            const placeholder = document.getElementById('no-owner-data');
-
-            const total = p1 + p2 + both;
-
-            if (total === 0) {
-                placeholder.classList.remove('hidden');
-                if (chartOwnersObj) chartOwnersObj.destroy();
-                return;
-            } else {
-                placeholder.classList.add('hidden');
-            }
-
-            if (chartOwnersObj) {
-                chartOwnersObj.destroy();
-            }
-
-            chartOwnersObj = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: [state.partners.p1, state.partners.p2, 'Ambos'],
-                    datasets: [{
-                        data: [p1, p2, both],
-                        backgroundColor: ['#3b82f6', '#ec4899', '#0d9488'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-
-        function calculateSplitJust(txs, p1Out, p2Out, bothOut) {
-            const contasComuns = txs.filter(t => (t.type === 'despesa' || t.type === 'investimento') && t.owner === 'Ambos');
-            const totalComum = contasComuns.reduce((acc, curr) => acc + curr.value, 0);
-            
-            const receitasP1 = txs.filter(t => t.type === 'receita' && t.owner === state.partners.p1).reduce((acc, c) => acc + c.value, 0);
-            const receitasP2 = txs.filter(t => t.type === 'receita' && t.owner === state.partners.p2).reduce((acc, c) => acc + c.value, 0);
-            const totalReceitaCasal = receitasP1 + receitasP2;
-
-            const divContainer = document.getElementById('divisao-contas-container');
-            divContainer.innerHTML = '';
-
-            if (totalComum === 0) {
-                divContainer.innerHTML = `<div class="text-xs text-slate-400 font-bold">Nenhuma despesa compartilhada ("Ambos") no período.</div>`;
-                return;
-            }
-
-            const parcelaIdeal = totalComum / 2;
-
-            let htmlResult = `
-                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between text-xs text-slate-700">
-                    <span>Total das Contas Compartilhadas (Ambos):</span>
-                    <span class="font-bold text-slate-950">${formatCurrency(totalComum)}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-100">
-                        <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Cota ideal de ${state.partners.p1} (50%):</span>
-                        <span class="font-bold text-slate-800 text-sm block mt-1">${formatCurrency(parcelaIdeal)}</span>
-                    </div>
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-100">
-                        <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Cota ideal de ${state.partners.p2} (50%):</span>
-                        <span class="font-bold text-slate-800 text-sm block mt-1">${formatCurrency(parcelaIdeal)}</span>
-                    </div>
-                </div>
-            `;
-
-            if (totalReceitaCasal > 0 && receitasP1 > 0 && receitasP2 > 0) {
-                const propP1 = receitasP1 / totalReceitaCasal;
-                const propP2 = receitasP2 / totalReceitaCasal;
-                
-                htmlResult += `
-                    <div class="mt-2 text-[11px] text-slate-400 border-t border-slate-100 pt-3">
-                        <span class="font-bold text-slate-500 uppercase tracking-wider">Divisão Proporcional à Renda Declarada (${(propP1*100).toFixed(0)}% / ${(propP2*100).toFixed(0)}%):</span>
-                        <div class="grid grid-cols-2 gap-2 mt-2 font-bold text-slate-700">
-                            <div class="bg-white p-2 rounded-xl border border-slate-100">${state.partners.p1}: <span class="text-slate-950 ml-1 block text-xs mt-0.5">${formatCurrency(totalComum * propP1)}</span></div>
-                            <div class="bg-white p-2 rounded-xl border border-slate-100">${state.partners.p2}: <span class="text-slate-950 ml-1 block text-xs mt-0.5">${formatCurrency(totalComum * propP2)}</span></div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            divContainer.innerHTML = htmlResult;
-        }
-
-        // Renderizar Extrato Completo
-        window.renderTable = function() {
-            const tbody = document.getElementById('transactions-tbody');
-            const emptyState = document.getElementById('empty-state-table');
-            const searchVal = document.getElementById('tx-search').value.toLowerCase();
-            const filterType = document.getElementById('tx-filter-type').value;
-
-            tbody.innerHTML = '';
-            let filtered = getFilteredTransactions();
-
-            if (filterType !== 'todos') {
-                filtered = filtered.filter(t => t.type === filterType);
-            }
-
-            if (searchVal) {
-                filtered = filtered.filter(t => 
-                    t.desc.toLowerCase().includes(searchVal) || 
-                    t.category.toLowerCase().includes(searchVal)
-                );
-            }
-
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            filtered.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/50 transition-colors";
-
-                let typeBadge = '';
-                let valueColor = '';
-
-                if (t.type === 'receita') {
-                    typeBadge = `<span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-600 rounded-md">Receita</span>`;
-                    valueColor = 'text-emerald-600 font-bold';
-                } else if (t.type === 'despesa') {
-                    typeBadge = `<span class="px-2 py-0.5 text-[10px] font-bold bg-rose-50 text-rose-600 rounded-md">Despesa</span>`;
-                    valueColor = 'text-rose-600 font-semibold';
-                } else {
-                    typeBadge = `<span class="px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-600 rounded-md font-bold">Invest.</span>`;
-                    valueColor = 'text-indigo-600 font-semibold';
-                }
-
-                const dateObj = new Date(t.date + "T00:00:00");
-                const formattedDate = dateObj.toLocaleDateString('pt-BR');
-
-                tr.innerHTML = `
-                    <td class="py-3 px-6 text-xs text-slate-500 font-bold">${formattedDate}</td>
-                    <td class="py-3 px-6">
-                        <div class="font-bold text-slate-900">${t.desc}</div>
-                        <div class="mt-0.5">${typeBadge}</div>
-                    </td>
-                    <td class="py-3 px-6 text-xs text-slate-600 font-semibold">${t.category}</td>
-                    <td class="py-3 px-6 text-xs text-slate-700 font-bold">${t.owner}</td>
-                    <td class="py-3 px-6 text-right ${valueColor}">${t.type === 'despesa' ? '-' : ''}${formatCurrency(t.value)}</td>
-                    <td class="py-3 px-6 text-center">
-                        <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-slate-100 rounded-lg transition-all" title="Excluir Lançamento">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </td>
-                `;
-
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Exportador de planilha CSV amigável com Excel
-        window.exportToCSV = function() {
-            let csvContent = "\uFEFF";
-            csvContent += "SINTONIA FINANCEIRA - " + state.partners.p1.toUpperCase() + " & " + state.partners.p2.toUpperCase() + "\r\n\r\n";
-            
-            let receitas = 0, despesas = 0, investimentos = 0;
-            state.transactions.forEach(t => {
-                if (t.type === 'receita') receitas += t.value;
-                else if (t.type === 'despesa') despesas += t.value;
-                else if (t.type === 'investimento') investimentos += t.value;
-            });
-            
-            csvContent += "RESUMO GERAL\r\n";
-            csvContent += "Métrica,Valor\r\n";
-            csvContent += `Receitas Total,"R$ ${receitas.toFixed(2).replace('.', ',')}"\r\n`;
-            csvContent += `Despesas Total,"R$ ${despesas.toFixed(2).replace('.', ',')}"\r\n`;
-            csvContent += `Investimentos Total,"R$ ${investimentos.toFixed(2).replace('.', ',')}"\r\n`;
-            csvContent += `Saldo Final,"R$ ${(receitas - despesas - investimentos).toFixed(2).replace('.', ',')}"\r\n\r\n`;
-            
-            csvContent += "HISTÓRICO COMPLETO\r\n";
-            csvContent += "Data,Tipo,Descrição,Responsável,Valor (R$),Categoria\r\n";
-            
-            state.transactions.forEach(t => {
-                const dObj = new Date(t.date + "T00:00:00");
-                csvContent += `"${dObj.toLocaleDateString('pt-BR')}","${t.type.toUpperCase()}","${t.desc.replace(/"/g, '""')}","${t.owner}","${t.value.toFixed(2).replace('.', ',')}","${t.category}"\r\n`;
-            });
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", url);
-            downloadAnchor.setAttribute("download", `Sintonia_Planilha_${new Date().toISOString().slice(0, 10)}.csv`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast("Planilha CSV baixada!", "success");
-        }
-
-        // Exportador JSON de Backup
-        window.exportData = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Sintonia_Backup_${new Date().toISOString().slice(0, 10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast("Arquivo de backup JSON gerado!", "success");
-        }
-
-        // Sincronizar novo backup importado
-        window.importData = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed.transactions && parsed.partners) {
-                        state = parsed;
-                        
-                        // Sincronizar em lote para a nuvem
-                        if (isCloudMode && db) {
-                            // Salvar configurações
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), {
-                                partners: state.partners,
-                                categories: state.categories || DEFAULT_CATEGORIES
-                            });
-
-                            // Salvar lançamentos
-                            for (let t of state.transactions) {
-                                const tId = t.id || String(Date.now() + Math.random());
-                                delete t.id; // remover id interno para o Firestore
-                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', tId), t);
-                            }
-                        } else {
-                            saveStateToLocalStorage();
-                        }
-                        
-                        document.getElementById('cfg-p1-name').value = state.partners.p1;
-                        document.getElementById('cfg-p2-name').value = state.partners.p2;
-                        updatePartnerDOM();
-                        calculateAndRender();
-                        showToast("Dados importados com sucesso!", "success");
-                        switchTab('dashboard');
-                    } else {
-                        showToast("Formato de backup incompatível.", "error");
-                    }
-                } catch (err) {
-                    showToast("Erro ao carregar arquivo.", "error");
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        // Limpar planilha
-        window.clearAllData = function() {
-            showConfirmModal("Você tem certeza que quer limpar toda a planilha? Essa ação não pode ser desfeita.", async () => {
-                if (isCloudMode && db) {
-                    try {
-                        // Deletar transações da nuvem em lote
-                        for (let t of state.transactions) {
-                            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', String(t.id)));
-                        }
-                        // Resetar configurações para os padrões
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), {
-                            partners: { p1: "Mateus", p2: "Iasmyn" },
-                            categories: DEFAULT_CATEGORIES
-                        });
-                        showToast("Planilha limpa na nuvem!", "info");
-                    } catch (e) {
-                        showToast("Erro ao limpar dados remotos.", "error");
-                    }
-                } else {
-                    state.transactions = [];
-                    state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-                    state.partners = { p1: "Mateus", p2: "Iasmyn" };
-                    saveStateToLocalStorage();
-                    
-                    document.getElementById('cfg-p1-name').value = state.partners.p1;
-                    document.getElementById('cfg-p2-name').value = state.partners.p2;
-                    updatePartnerDOM();
-                    calculateAndRender();
-                    renderConfigCategories();
-                    if (state.currentTab === 'historico') {
-                        renderTable();
-                    }
-                    showToast("Planilha limpa localmente com sucesso!", "info");
-                }
-            });
-        }
-
-        // Trocar de abas
-        window.switchTab = function(tab) {
-            state.currentTab = tab;
-            
-            document.getElementById('panel-dashboard').classList.add('hidden');
-            document.getElementById('panel-historico').classList.add('hidden');
-            document.getElementById('panel-config').classList.add('hidden');
-
-            document.getElementById('tab-btn-dashboard').className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50";
-            document.getElementById('tab-btn-historico').className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50";
-            document.getElementById('tab-btn-config').className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50";
-
-            if (tab === 'dashboard') {
-                document.getElementById('panel-dashboard').classList.remove('hidden');
-                document.getElementById('tab-btn-dashboard').className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm";
-                calculateAndRender();
-            } else if (tab === 'historico') {
-                document.getElementById('panel-historico').classList.remove('hidden');
-                document.getElementById('tab-btn-historico').className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm";
-                renderTable();
-            } else if (tab === 'config') {
-                document.getElementById('panel-config').classList.remove('hidden');
-                document.getElementById('tab-btn-config').className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm";
-                renderConfigCategories();
-            }
-        }
-
-        // Alterar Período de exibição
-        window.changePeriod = function(per) {
-            state.period = per;
-            document.getElementById('btn-period-all').className = "px-3.5 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all";
-            document.getElementById('btn-period-current').className = "px-3.5 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all";
-
-            if (per === 'all') {
-                document.getElementById('btn-period-all').className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all";
-            } else {
-                document.getElementById('btn-period-current').className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all";
-            }
-
-            calculateAndRender();
-            if (state.currentTab === 'historico') {
-                renderTable();
-            }
-            showToast(`Período: ${per === 'all' ? 'Todo o histórico' : 'Mês atual'}`);
-        }
-
-        // Alterar categoria baseada no fluxo
-        window.updateFormType = function() {
-            const selectedType = document.querySelector('input[name="type"]:checked').value;
-            const selectCategory = document.getElementById('tx-category');
-            
-            document.getElementById('label-tipo-despesa').className = "flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-semibold hover:bg-slate-50 transition-all select-none";
-            document.getElementById('label-tipo-receita').className = "flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-semibold hover:bg-slate-50 transition-all select-none";
-            document.getElementById('label-tipo-investimento').className = "flex items-center justify-center p-2.5 rounded-xl border border-slate-200 cursor-pointer text-sm font-semibold hover:bg-slate-50 transition-all select-none";
-
-            if (selectedType === 'despesa') {
-                document.getElementById('label-tipo-despesa').className = "flex items-center justify-center p-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-sm font-bold text-rose-700 transition-all select-none";
-            } else if (selectedType === 'receita') {
-                document.getElementById('label-tipo-receita').className = "flex items-center justify-center p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-sm font-bold text-emerald-700 transition-all select-none";
-            } else if (selectedType === 'investimento') {
-                document.getElementById('label-tipo-investimento').className = "flex items-center justify-center p-2.5 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-sm font-bold text-indigo-700 transition-all select-none";
-            }
-
-            selectCategory.innerHTML = '';
-            state.categories[selectedType].forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.innerText = cat;
-                selectCategory.appendChild(opt);
-            });
-        }
-
-        // Vincular no DOM do casal
-        function updatePartnerDOM() {
             document.getElementById('txt-owner-1').innerText = state.partners.p1;
             document.getElementById('txt-owner-2').innerText = state.partners.p2;
             document.getElementById('label-owner-1').querySelector('input').value = state.partners.p1;
             document.getElementById('label-owner-2').querySelector('input').value = state.partners.p2;
             document.getElementById('txt-legend-p1').innerText = state.partners.p1;
             document.getElementById('txt-legend-p2').innerText = state.partners.p2;
-            document.getElementById('cfg-p1-name').value = state.partners.p1;
-            document.getElementById('cfg-p2-name').value = state.partners.p2;
+
+            updateFormType();
+            calculateAndRender();
+            renderCategoryLists();
+            if(state.currentTab === 'historico') renderTable();
         }
 
-        // Utilitários de Toasts Customizados
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            let bgClass = 'bg-white border-blue-100 text-blue-800 shadow-blue-50';
-            let icon = `<svg class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-
-            if (type === 'success') {
-                bgClass = 'bg-white border-emerald-100 text-emerald-800 shadow-emerald-50';
-                icon = `<svg class="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>`;
-            } else if (type === 'error') {
-                bgClass = 'bg-white border-rose-100 text-rose-800 shadow-rose-50';
-                icon = `<svg class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
-            }
-
-            toast.className = `${bgClass} border p-3.5 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-2 opacity-0 transition-all duration-300 text-xs font-bold pointer-events-auto`;
-            toast.innerHTML = `${icon} <span>${message}</span>`;
+            const bgClass = type === 'error' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800';
+            toast.className = `${bgClass} border p-3 rounded-xl shadow-lg transform transition-all text-xs font-bold pointer-events-auto mb-2`;
+            toast.innerHTML = `<span>${message}</span>`;
             container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function switchTab(tab) {
+            state.currentTab = tab;
+            document.getElementById('panel-dashboard').classList.add('hidden');
+            document.getElementById('panel-historico').classList.add('hidden');
+            document.getElementById('panel-config').classList.add('hidden');
             
-            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
+            ['dashboard', 'historico', 'config'].forEach(t => {
+                document.getElementById(`tab-btn-${t}`).className = "flex-1 py-2 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:bg-slate-50";
+            });
 
-        // Modal de Confirmação Customizado
-        function showConfirmModal(message, onConfirm) {
-            document.getElementById('confirm-modal-message').innerText = message;
-            const modal = document.getElementById('confirm-modal-overlay');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            activeConfirmCallback = onConfirm;
-        }
-
-        window.closeConfirmModal = function(confirmed) {
-            const modal = document.getElementById('confirm-modal-overlay');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById(`panel-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tab}`).className = "flex-1 py-2 text-sm font-bold rounded-lg bg-emerald-50 text-emerald-600 shadow-sm";
             
-            if (confirmed && activeConfirmCallback) {
-                activeConfirmCallback();
-            }
-            activeConfirmCallback = null;
+            updateAllUI();
         }
 
-        // Gerenciamento do Modal de Configuração de Nuvem Externa
-        window.openCloudConfigModal = function() {
-            const modal = document.getElementById('cloud-config-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        function updatePartnerNames() {
+            state.partners.p1 = document.getElementById('cfg-p1-name').value.trim() || state.partners.p1;
+            state.partners.p2 = document.getElementById('cfg-p2-name').value.trim() || state.partners.p2;
+            saveToCloud();
+            showToast("Nomes atualizados e sincronizados!");
+        }
+
+        function changePeriod(per) {
+            state.period = per;
+            document.getElementById('btn-period-all').className = "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 hover:bg-slate-200 transition-all";
+            document.getElementById('btn-period-current').className = "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 hover:bg-slate-200 transition-all";
+            document.getElementById(`btn-period-${per}`).className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all";
+            calculateAndRender();
+        }
+
+        // --- 5. CATEGORIAS ---
+        function updateFormType() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            const selectCategory = document.getElementById('tx-category');
             
-            const localCloudConfig = localStorage.getItem('sintonia_custom_firebase');
-            if (localCloudConfig) {
-                document.getElementById('cloud-json-config').value = localCloudConfig;
+            document.getElementById('label-tipo-despesa').className = "flex items-center justify-center p-2.5 rounded-xl border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all select-none";
+            document.getElementById('label-tipo-receita').className = "flex items-center justify-center p-2.5 rounded-xl border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all select-none";
+            document.getElementById('label-tipo-investimento').className = "flex items-center justify-center p-2.5 rounded-xl border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all select-none";
+
+            const colors = { despesa: 'rose', receita: 'emerald', investimento: 'indigo' };
+            const c = colors[selectedType];
+            document.getElementById(`label-tipo-${selectedType}`).className = `flex items-center justify-center p-2.5 rounded-xl border-2 border-${c}-500 bg-${c}-50 text-sm font-bold text-${c}-700 transition-all select-none`;
+
+            selectCategory.innerHTML = '';
+            (state.categories[selectedType] || []).forEach(cat => {
+                selectCategory.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        function renderCategoryLists() {
+            const container = document.getElementById('categories-lists-container');
+            container.innerHTML = '';
+            ['despesa', 'receita', 'investimento'].forEach(type => {
+                let html = `<div class="bg-slate-50 border border-slate-100 p-3 rounded-xl"><h5 class="text-xs font-bold text-slate-700 uppercase mb-2">${type}s</h5><ul class="space-y-1">`;
+                (state.categories[type] || []).forEach(cat => {
+                    html += `<li class="flex justify-between items-center text-xs bg-white px-2 py-1.5 border border-slate-100 rounded-md">
+                        <span>${cat}</span>
+                        <button onclick="removeCategory('${type}', '${cat}')" class="text-rose-500 hover:text-rose-700 font-bold">X</button>
+                    </li>`;
+                });
+                container.innerHTML += html + `</ul></div>`;
+            });
+        }
+
+        function addCategory() {
+            const type = document.getElementById('new-cat-type').value;
+            const name = document.getElementById('new-cat-name').value.trim();
+            if (name && !state.categories[type].includes(name)) {
+                state.categories[type].push(name);
+                saveToCloud();
+                document.getElementById('new-cat-name').value = '';
+                showToast("Categoria Sincronizada!");
             }
         }
 
-        window.closeCloudConfigModal = function() {
-            const modal = document.getElementById('cloud-config-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        function removeCategory(type, name) {
+            state.categories[type] = state.categories[type].filter(c => c !== name);
+            saveToCloud();
         }
 
-        window.saveCustomCloudConfig = function() {
-            const jsonText = document.getElementById('cloud-json-config').value.trim();
-            if (!jsonText) {
-                showToast("Por favor, cole as credenciais do seu Firebase.", "error");
-                return;
+        // --- 6. TRANSAÇÕES ---
+        function addTransaction(e) {
+            e.preventDefault();
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const newTx = {
+                id: Date.now(),
+                type,
+                value: parseFloat(document.getElementById('tx-value').value),
+                date: document.getElementById('tx-date').value,
+                desc: document.getElementById('tx-desc').value.trim(),
+                category: document.getElementById('tx-category').value,
+                owner: document.querySelector('input[name="owner"]:checked').value
+            };
+            
+            if(!newTx.category) newTx.category = "Sem categoria";
+            
+            state.transactions.unshift(newTx);
+            saveToCloud();
+
+            document.getElementById('tx-desc').value = '';
+            document.getElementById('tx-value').value = '';
+            showToast("Lançamento enviado para a nuvem!", "success");
+        }
+
+        function deleteTransaction(id) {
+            if(confirm("Remover permanentemente?")) {
+                state.transactions = state.transactions.filter(t => t.id !== id);
+                saveToCloud();
             }
+        }
 
-            try {
-                JSON.parse(jsonText); // validar json
-                localStorage.setItem('sintonia_custom_firebase', jsonText);
-                showToast("Chaves salvas! Recarregando sistema...", "success");
-                setTimeout(() => location.reload(), 1500);
-            } catch (err) {
-                showToast("Formato de JSON inválido.", "error");
+        function getFilteredTransactions() {
+            if (state.period === 'all') return state.transactions;
+            const now = new Date();
+            return state.transactions.filter(t => {
+                const [y, m] = t.date.split('-');
+                return parseInt(y) === now.getFullYear() && parseInt(m) - 1 === now.getMonth();
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('transactions-tbody');
+            const emptyState = document.getElementById('empty-state-table');
+            const filterType = document.getElementById('tx-filter-type').value;
+            let filtered = getFilteredTransactions();
+
+            if (filterType !== 'todos') filtered = filtered.filter(t => t.type === filterType);
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filtered.forEach(t => {
+                    const dt = t.date.split('-');
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50/50">
+                            <td class="py-3 px-6 text-xs text-slate-500">${dt[2]}/${dt[1]}/${dt[0]}</td>
+                            <td class="py-3 px-6 font-semibold text-slate-900">${t.desc}</td>
+                            <td class="py-3 px-6 text-xs text-slate-600">${t.category}</td>
+                            <td class="py-3 px-6 text-xs text-slate-700 font-bold">${t.owner}</td>
+                            <td class="py-3 px-6 text-right font-bold ${t.type === 'receita' ? 'text-emerald-600' : (t.type === 'despesa' ? 'text-rose-600' : 'text-indigo-600')}">
+                                ${t.type === 'despesa' ? '-' : ''}R$ ${t.value.toFixed(2).replace('.', ',')}
+                            </td>
+                            <td class="py-3 px-6 text-center">
+                                <button onclick="deleteTransaction(${t.id})" class="text-rose-500 hover:text-rose-700 font-bold">X</button>
+                            </td>
+                        </tr>
+                    `;
+                });
             }
         }
 
-        window.clearCustomCloudConfig = function() {
-            localStorage.removeItem('sintonia_custom_firebase');
-            showToast("Conexão removida! Retornando ao modo local...", "info");
-            setTimeout(() => location.reload(), 1500);
+        // --- 7. DASHBOARDS E CÁLCULOS ---
+        function calculateAndRender() {
+            const txs = getFilteredTransactions();
+            let [rec, des, inv] = [0, 0, 0];
+
+            txs.forEach(t => {
+                if (t.type === 'receita') rec += t.value;
+                else if (t.type === 'despesa') des += t.value;
+                else inv += t.value;
+            });
+
+            document.getElementById('sum-receitas').innerText = `R$ ${rec.toFixed(2).replace('.', ',')}`;
+            document.getElementById('sum-despesas').innerText = `R$ ${des.toFixed(2).replace('.', ',')}`;
+            document.getElementById('sum-investimentos').innerText = `R$ ${inv.toFixed(2).replace('.', ',')}`;
+            document.getElementById('sum-saldo').innerText = `R$ ${(rec - des - inv).toFixed(2).replace('.', ',')}`;
+            
+            // Gráficos
+            const despesasTxs = txs.filter(t => t.type === 'despesa');
+            const catSums = {};
+            despesasTxs.forEach(t => { catSums[t.category] = (catSums[t.category] || 0) + t.value; });
+            
+            if(chartCategoriesObj) chartCategoriesObj.destroy();
+            const ctxCat = document.getElementById('chart-categories').getContext('2d');
+            if(Object.keys(catSums).length > 0) {
+                document.getElementById('no-category-data').classList.add('hidden');
+                chartCategoriesObj = new Chart(ctxCat, {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(catSums), datasets: [{ data: Object.values(catSums), backgroundColor: ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] }] },
+                    options: { maintainAspectRatio: false, cutout: '65%' }
+                });
+            } else document.getElementById('no-category-data').classList.remove('hidden');
+
+            const outflows = txs.filter(t => t.type !== 'receita');
+            let [p1Sum, p2Sum, bothSum] = [0, 0, 0];
+            outflows.forEach(t => {
+                if (t.owner === state.partners.p1) p1Sum += t.value;
+                else if (t.owner === state.partners.p2) p2Sum += t.value;
+                else bothSum += t.value;
+            });
+            
+            document.getElementById('stat-p1').innerText = `R$ ${p1Sum.toFixed(2)}`;
+            document.getElementById('stat-p2').innerText = `R$ ${p2Sum.toFixed(2)}`;
+            document.getElementById('stat-both').innerText = `R$ ${bothSum.toFixed(2)}`;
+
+            if(chartOwnersObj) chartOwnersObj.destroy();
+            const ctxOwn = document.getElementById('chart-owners').getContext('2d');
+            if(p1Sum+p2Sum+bothSum > 0) {
+                document.getElementById('no-owner-data').classList.add('hidden');
+                chartOwnersObj = new Chart(ctxOwn, {
+                    type: 'pie',
+                    data: { labels: [state.partners.p1, state.partners.p2, 'Ambos'], datasets: [{ data: [p1Sum, p2Sum, bothSum], backgroundColor: ['#2563eb', '#db2777', '#0d9488'] }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            } else document.getElementById('no-owner-data').classList.remove('hidden');
+
+            // Rateio Justo
+            const divContainer = document.getElementById('divisao-contas-container');
+            const totalComum = txs.filter(t => t.type !== 'receita' && t.owner === 'Ambos').reduce((a, c) => a + c.value, 0);
+            if(totalComum === 0) {
+                divContainer.innerHTML = '<span class="text-slate-400">Sem contas compartilhadas.</span>';
+            } else {
+                divContainer.innerHTML = `
+                    <div class="bg-white p-3 rounded-xl border text-xs">
+                        Total Compartilhado: <strong class="text-slate-900">R$ ${totalComum.toFixed(2)}</strong><br>
+                        Cota Ideal (50%): <strong class="text-slate-900">R$ ${(totalComum/2).toFixed(2)}</strong> por pessoa.
+                    </div>`;
+            }
         }
-
-        window.triggerImport = function() {
-            document.getElementById('global-import-file').click();
-        }
-
-        // Inicialização Principal
-        initFirebase();
-
-        // Expõe funções necessárias para formulários do HTML
-        window.addTransaction = addTransaction;
     </script>
 </body>
 </html>
