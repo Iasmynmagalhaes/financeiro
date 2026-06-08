@@ -17,6 +17,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 relative">
 
+    <!-- TELA DE LOGIN -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 transition-all duration-500 hidden">
         <div class="bg-white max-w-sm w-full rounded-3xl p-8 shadow-2xl text-center">
             <div class="bg-emerald-100 text-emerald-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
@@ -38,6 +39,7 @@
         </div>
     </div>
 
+    <!-- TELA DE CARREGAMENTO INICIAL -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="text-center">
             <span class="relative flex h-10 w-10 mx-auto mb-4">
@@ -48,6 +50,7 @@
         </div>
     </div>
 
+    <!-- Header do App -->
     <header id="app-header" class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm hidden opacity-0 transition-opacity duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -86,7 +89,9 @@
         </div>
     </header>
 
+    <!-- Conteúdo Principal do App -->
     <main id="app-main" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 hidden opacity-0 transition-opacity duration-500">
+        <!-- Cards de Resumo -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div><p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Receita Total</p><h3 class="text-2xl font-bold text-slate-900 mt-1" id="sum-receitas">R$ 0,00</h3></div>
@@ -107,6 +112,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulário de Lançamento -->
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
                 <div class="flex items-center gap-2 mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -145,9 +151,15 @@
                         <input type="text" required id="tx-desc" placeholder="Ex: Conta de luz" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Categoria</label>
-                        <select id="tx-category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></select>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Categoria</label>
+                            <select id="tx-category" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pagamento</label>
+                            <select id="tx-payment" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></select>
+                        </div>
                     </div>
 
                     <div>
@@ -169,6 +181,7 @@
                 </form>
             </div>
 
+            <!-- Dashboards e Listagem -->
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex gap-2">
                     <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm">Dashboard Visual</button>
@@ -176,6 +189,7 @@
                     <button onclick="switchTab('config')" id="tab-btn-config" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Configurações</button>
                 </div>
 
+                <!-- Painel 1: Dashboard -->
                 <div id="panel-dashboard" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
@@ -211,6 +225,7 @@
                     </div>
                 </div>
 
+                <!-- Painel 2: Histórico -->
                 <div id="panel-historico" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hidden">
                     <div class="p-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <h3 class="text-base font-bold text-slate-900">Histórico de Transações</h3>
@@ -227,7 +242,7 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                    <th class="py-3 px-6">Data</th><th class="py-3 px-6">Descrição</th><th class="py-3 px-6">Categoria</th><th class="py-3 px-6">Responsável</th><th class="py-3 px-6 text-right">Valor</th><th class="py-3 px-6 text-center">Ações</th>
+                                    <th class="py-3 px-6">Data</th><th class="py-3 px-6">Descrição</th><th class="py-3 px-6">Categoria / Pagto.</th><th class="py-3 px-6">Responsável</th><th class="py-3 px-6 text-right">Valor</th><th class="py-3 px-6 text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="transactions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -236,6 +251,7 @@
                     <div id="empty-state-table" class="p-12 text-center hidden"><p class="text-sm font-semibold text-slate-500">Nenhum lançamento encontrado</p></div>
                 </div>
 
+                <!-- Painel 3: Configurações -->
                 <div id="panel-config" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hidden space-y-6">
                     <div><h3 class="text-base font-bold text-slate-900">Identificação do Casal</h3></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -263,6 +279,18 @@
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="categories-lists-container"></div>
                     </div>
+                    
+                    <!-- Novo painel: Gerenciar Formas de Pagamento -->
+                    <div class="border-t border-slate-100 pt-5">
+                        <h4 class="text-sm font-bold text-slate-900 mb-4">Gerenciar Formas de Pagamento</h4>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-pay-name" placeholder="Nova forma de pagamento" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                            <button onclick="addPaymentMethod()" class="px-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-lg">Adicionar</button>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl max-w-md">
+                            <ul class="space-y-1" id="payment-methods-list"></ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -285,9 +313,9 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        let docRef; // Agora é dinâmico por usuário!
+        let docRef;
 
-        // --- 2. ESTADO INICIAL (Zerar para novos usuários) ---
+        // --- 2. ESTADO INICIAL ---
         let state = {
             transactions: [],
             partners: { p1: "Parceiro 1", p2: "Parceiro 2" },
@@ -296,6 +324,7 @@
                 receita: ["Salário", "Renda Extra", "Outros"],
                 investimento: ["Reserva de Emergência", "Ações/FIIs"]
             },
+            paymentMethods: ["Dinheiro", "Cartão de Débito", "Cartão de Crédito", "Pix"],
             period: 'current',
             currentTab: 'dashboard'
         };
@@ -305,15 +334,15 @@
         let unsubscribeSnapshot = null;
 
         // --- 3. AUTENTICAÇÃO FIREBASE ---
-        window.addEventListener('load', () => {
-            auth.onAuthStateChanged((user) => {
-                document.getElementById('loading-screen').classList.add('hidden');
-                if (user) {
-                    liberarAcesso(false, user); 
-                } else {
-                    mostrarTelaLogin();
-                }
-            });
+        auth.onAuthStateChanged((user) => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) loadingScreen.classList.add('hidden');
+            
+            if (user) {
+                liberarAcesso(false, user); 
+            } else {
+                mostrarTelaLogin();
+            }
         });
 
         function mostrarTelaLogin() {
@@ -372,17 +401,20 @@
 
         function iniciarSistemaFinanceiro(user) {
             document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
-            
-            // A MAGIA ACONTECE AQUI: Cada UID (usuário) tem seu próprio documento no banco de dados!
             docRef = db.collection('contas_usuarios').doc(user.uid);
             
             if(unsubscribeSnapshot) unsubscribeSnapshot();
             
             unsubscribeSnapshot = docRef.onSnapshot((doc) => {
                 if (doc.exists) {
-                    state = { ...state, ...doc.data() };
+                    const data = doc.data();
+                    state = { ...state, ...data };
+                    // Garante que array de pagamentos exista mesmo em contas antigas
+                    if(!state.paymentMethods || state.paymentMethods.length === 0) {
+                        state.paymentMethods = ["Dinheiro", "Cartão de Débito", "Cartão de Crédito", "Pix"];
+                    }
                 } else {
-                    saveToCloud(); // Se a conta for nova, salva o estado inicial zerado para ela
+                    saveToCloud(); 
                 }
                 updateAllUI();
             }, (error) => {
@@ -395,7 +427,8 @@
             docRef.set({
                 transactions: state.transactions,
                 partners: state.partners,
-                categories: state.categories
+                categories: state.categories,
+                paymentMethods: state.paymentMethods
             }).catch(error => showToast("Erro de sincronização!", "error"));
         }
 
@@ -411,6 +444,7 @@
             document.getElementById('txt-legend-p2').innerText = state.partners.p2;
 
             updateFormType();
+            updatePaymentMethodsUI();
             calculateAndRender();
             renderCategoryLists();
             if(state.currentTab === 'historico') renderTable();
@@ -454,7 +488,7 @@
             calculateAndRender();
         }
 
-        // --- 5. CATEGORIAS ---
+        // --- 5. CATEGORIAS E PAGAMENTOS ---
         function updateFormType() {
             const selectedType = document.querySelector('input[name="type"]:checked').value;
             const selectCategory = document.getElementById('tx-category');
@@ -467,6 +501,22 @@
             selectCategory.innerHTML = '';
             (state.categories[selectedType] || []).forEach(cat => {
                 selectCategory.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        function updatePaymentMethodsUI() {
+            // Atualiza select no formulário
+            const selectPayment = document.getElementById('tx-payment');
+            selectPayment.innerHTML = '';
+            state.paymentMethods.forEach(p => {
+                selectPayment.innerHTML += `<option value="${p}">${p}</option>`;
+            });
+
+            // Atualiza lista na aba Configurações
+            const list = document.getElementById('payment-methods-list');
+            list.innerHTML = '';
+            state.paymentMethods.forEach(p => {
+                list.innerHTML += `<li class="flex justify-between items-center text-xs bg-white px-2 py-1.5 border border-slate-100 rounded-md"><span>${p}</span><button onclick="removePaymentMethod('${p}')" class="text-rose-500 hover:text-rose-700 font-bold">X</button></li>`;
             });
         }
 
@@ -498,6 +548,21 @@
             saveToCloud();
         }
 
+        function addPaymentMethod() {
+            const name = document.getElementById('new-pay-name').value.trim();
+            if (name && !state.paymentMethods.includes(name)) {
+                state.paymentMethods.push(name);
+                saveToCloud();
+                document.getElementById('new-pay-name').value = '';
+                showToast("Forma de pagamento adicionada!");
+            }
+        }
+
+        function removePaymentMethod(name) {
+            state.paymentMethods = state.paymentMethods.filter(p => p !== name);
+            saveToCloud();
+        }
+
         // --- 6. TRANSAÇÕES ---
         function addTransaction(e) {
             e.preventDefault();
@@ -509,6 +574,7 @@
                 date: document.getElementById('tx-date').value,
                 desc: document.getElementById('tx-desc').value.trim(),
                 category: document.getElementById('tx-category').value,
+                payment: document.getElementById('tx-payment').value,
                 owner: document.querySelector('input[name="owner"]:checked').value
             };
             if(!newTx.category) newTx.category = "Sem categoria";
@@ -550,11 +616,16 @@
                 emptyState.classList.add('hidden');
                 filtered.forEach(t => {
                     const dt = t.date.split('-');
+                    const pagtoLabel = t.payment || 'Não informado';
+                    
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50/50">
                             <td class="py-3 px-6 text-xs text-slate-500">${dt[2]}/${dt[1]}/${dt[0]}</td>
                             <td class="py-3 px-6 font-semibold text-slate-900">${t.desc}</td>
-                            <td class="py-3 px-6 text-xs text-slate-600">${t.category}</td>
+                            <td class="py-3 px-6">
+                                <span class="block text-xs text-slate-600">${t.category}</span>
+                                <span class="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-[10px] text-slate-500 rounded font-medium">${pagtoLabel}</span>
+                            </td>
                             <td class="py-3 px-6 text-xs text-slate-700 font-bold">${t.owner}</td>
                             <td class="py-3 px-6 text-right font-bold ${t.type === 'receita' ? 'text-emerald-600' : (t.type === 'despesa' ? 'text-rose-600' : 'text-indigo-600')}">
                                 ${t.type === 'despesa' ? '-' : ''}R$ ${t.value.toFixed(2).replace('.', ',')}
