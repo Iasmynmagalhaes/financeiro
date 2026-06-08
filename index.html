@@ -17,7 +17,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 relative">
 
-    <!-- TELA DE LOGIN -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 transition-all duration-500 hidden">
         <div class="bg-white max-w-sm w-full rounded-3xl p-8 shadow-2xl text-center">
             <div class="bg-emerald-100 text-emerald-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
@@ -39,7 +38,6 @@
         </div>
     </div>
 
-    <!-- TELA DE CARREGAMENTO INICIAL -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="text-center">
             <span class="relative flex h-10 w-10 mx-auto mb-4">
@@ -50,7 +48,6 @@
         </div>
     </div>
 
-    <!-- Header do App -->
     <header id="app-header" class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm hidden opacity-0 transition-opacity duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -76,9 +73,35 @@
             </div>
             
             <div class="flex items-center justify-between w-full sm:w-auto gap-4">
-                <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
-                    <button onclick="changePeriod('all')" id="btn-period-all" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all">Geral</button>
-                    <button onclick="changePeriod('current')" id="btn-period-current" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all">Mês Atual</button>
+                
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                    <select id="filter-month" onchange="applyFilter()" class="bg-transparent text-xs font-semibold text-slate-700 py-1 focus:outline-none cursor-pointer text-center">
+                        <option value="all">Mês: Todos</option>
+                        <option value="01">Jan</option>
+                        <option value="02">Fev</option>
+                        <option value="03">Mar</option>
+                        <option value="04">Abr</option>
+                        <option value="05">Mai</option>
+                        <option value="06">Jun</option>
+                        <option value="07">Jul</option>
+                        <option value="08">Ago</option>
+                        <option value="09">Set</option>
+                        <option value="10">Out</option>
+                        <option value="11">Nov</option>
+                        <option value="12">Dez</option>
+                    </select>
+                    <span class="text-slate-300">/</span>
+                    <select id="filter-year" onchange="applyFilter()" class="bg-transparent text-xs font-semibold text-slate-700 py-1 focus:outline-none cursor-pointer text-center">
+                        <option value="all">Ano: Geral</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                    <button onclick="setPeriodCurrent()" class="ml-1 px-2.5 py-1 text-[10px] font-bold rounded-md bg-white shadow-sm text-emerald-600 hover:bg-emerald-50 transition-all border border-slate-200/50" title="Voltar ao Mês Atual">Atual</button>
                 </div>
 
                 <button onclick="realizarLogout()" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
@@ -89,9 +112,7 @@
         </div>
     </header>
 
-    <!-- Conteúdo Principal do App -->
     <main id="app-main" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 hidden opacity-0 transition-opacity duration-500">
-        <!-- Cards de Resumo -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div><p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Receita Total</p><h3 class="text-2xl font-bold text-slate-900 mt-1" id="sum-receitas">R$ 0,00</h3></div>
@@ -112,7 +133,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Formulário de Lançamento -->
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
                 <div class="flex items-center gap-2 mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -184,7 +204,6 @@
                 </form>
             </div>
 
-            <!-- Dashboards e Listagem -->
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex gap-2">
                     <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm">Dashboard Visual</button>
@@ -192,7 +211,6 @@
                     <button onclick="switchTab('config')" id="tab-btn-config" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Configurações</button>
                 </div>
 
-                <!-- Painel 1: Dashboard -->
                 <div id="panel-dashboard" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
@@ -228,7 +246,6 @@
                     </div>
                 </div>
 
-                <!-- Painel 2: Histórico -->
                 <div id="panel-historico" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hidden">
                     <div class="p-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <h3 class="text-base font-bold text-slate-900">Histórico de Transações</h3>
@@ -251,10 +268,9 @@
                             <tbody id="transactions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
                         </table>
                     </div>
-                    <div id="empty-state-table" class="p-12 text-center hidden"><p class="text-sm font-semibold text-slate-500">Nenhum lançamento encontrado</p></div>
+                    <div id="empty-state-table" class="p-12 text-center hidden"><p class="text-sm font-semibold text-slate-500">Nenhum lançamento encontrado para o período selecionado.</p></div>
                 </div>
 
-                <!-- Painel 3: Configurações -->
                 <div id="panel-config" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hidden space-y-6">
                     <div><h3 class="text-base font-bold text-slate-900">Identificação do Casal</h3></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -317,7 +333,7 @@
         const db = firebase.firestore();
         let docRef;
 
-        // --- 2. ESTADO INICIAL ---
+        // --- 2. ESTADO INICIAL E VARIÁVEIS GLOBAIS ---
         let state = {
             transactions: [],
             partners: { p1: "Parceiro 1", p2: "Parceiro 2" },
@@ -327,27 +343,28 @@
                 investimento: ["Reserva de Emergência", "Ações/FIIs"]
             },
             paymentMethods: ["Dinheiro", "Cartão de Débito", "Cartão de Crédito", "Pix"],
-            period: 'current',
             currentTab: 'dashboard'
         };
 
         let chartCategoriesObj = null;
         let chartOwnersObj = null;
         let unsubscribeSnapshot = null;
-        
-        // VARIÁVEL DE CONTROLE DE EDIÇÃO
         let idSendoEditado = null; 
 
-        // --- 3. AUTENTICAÇÃO FIREBASE ---
-        auth.onAuthStateChanged((user) => {
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen) loadingScreen.classList.add('hidden');
+        // --- 3. AUTENTICAÇÃO E CARREGAMENTO ---
+        window.addEventListener('load', () => {
+            setPeriodCurrent(); // Inicializa os dropdowns de data
             
-            if (user) {
-                liberarAcesso(false, user); 
-            } else {
-                mostrarTelaLogin();
-            }
+            auth.onAuthStateChanged((user) => {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) loadingScreen.classList.add('hidden');
+                
+                if (user) {
+                    liberarAcesso(false, user); 
+                } else {
+                    mostrarTelaLogin();
+                }
+            });
         });
 
         function mostrarTelaLogin() {
@@ -436,7 +453,7 @@
             }).catch(error => showToast("Erro de sincronização!", "error"));
         }
 
-        // --- 4. FUNÇÕES DE INTERFACE ---
+        // --- 4. FUNÇÕES DE INTERFACE E FILTROS ---
         function updateAllUI() {
             document.getElementById('cfg-p1-name').value = state.partners.p1;
             document.getElementById('cfg-p2-name').value = state.partners.p2;
@@ -484,12 +501,31 @@
             showToast("Nomes atualizados e sincronizados!");
         }
 
-        function changePeriod(per) {
-            state.period = per;
-            document.getElementById('btn-period-all').className = "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 hover:bg-slate-200 transition-all";
-            document.getElementById('btn-period-current').className = "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 hover:bg-slate-200 transition-all";
-            document.getElementById(`btn-period-${per}`).className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-emerald-600 transition-all";
+        function setPeriodCurrent() {
+            const now = new Date();
+            document.getElementById('filter-month').value = String(now.getMonth() + 1).padStart(2, '0');
+            
+            const yearSelect = document.getElementById('filter-year');
+            const currentYear = String(now.getFullYear());
+            
+            if (!Array.from(yearSelect.options).some(opt => opt.value === currentYear)) {
+                yearSelect.innerHTML += `<option value="${currentYear}">${currentYear}</option>`;
+            }
+            yearSelect.value = currentYear;
+            
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const yearSelect = document.getElementById('filter-year');
+            const monthSelect = document.getElementById('filter-month');
+            
+            if (yearSelect.value === 'all') {
+                monthSelect.value = 'all'; 
+            }
+            
             calculateAndRender();
+            if (state.currentTab === 'historico') renderTable();
         }
 
         // --- 5. CATEGORIAS E PAGAMENTOS ---
@@ -510,7 +546,6 @@
 
         function updatePaymentMethodsUI() {
             const selectPayment = document.getElementById('tx-payment');
-            // Salva o valor atual para tentar manter ao atualizar a lista
             const valorAtual = selectPayment.value;
             
             selectPayment.innerHTML = '';
@@ -518,7 +553,6 @@
                 selectPayment.innerHTML += `<option value="${p}">${p}</option>`;
             });
             
-            // Restaura o valor se ele ainda existir na lista
             if (valorAtual && state.paymentMethods.includes(valorAtual)) {
                 selectPayment.value = valorAtual;
             }
@@ -579,7 +613,6 @@
             const type = document.querySelector('input[name="type"]:checked').value;
             
             const novoLancamento = {
-                // Se estiver editando, mantém o ID original. Se não, gera um novo.
                 id: idSendoEditado ? idSendoEditado : Date.now(),
                 type,
                 value: parseFloat(document.getElementById('tx-value').value),
@@ -593,15 +626,13 @@
             if(!novoLancamento.category) novoLancamento.category = "Sem categoria";
             
             if (idSendoEditado) {
-                // Modo Edição: Encontra onde está o item na lista e substitui
                 const index = state.transactions.findIndex(t => t.id === idSendoEditado);
                 if (index !== -1) {
                     state.transactions[index] = novoLancamento;
                 }
                 showToast("Lançamento atualizado!", "success");
-                cancelarEdicao(); // Limpa e volta o botão ao normal
+                cancelarEdicao(); 
             } else {
-                // Modo Novo Lançamento: Adiciona no topo da lista
                 state.transactions.unshift(novoLancamento);
                 showToast("Lançamento salvo na nuvem!", "success");
                 document.getElementById('tx-desc').value = '';
@@ -612,39 +643,32 @@
         }
 
         function iniciarEdicao(id) {
-            // Encontra a transação completa pelo ID
             const tx = state.transactions.find(t => t.id === id);
             if (!tx) return;
 
             idSendoEditado = id;
 
-            // 1. Marca o Tipo (Despesa, Receita, Investimento) e atualiza as categorias compatíveis
             document.querySelector(`input[name="type"][value="${tx.type}"]`).checked = true;
             updateFormType(); 
 
-            // 2. Preenche os campos de texto e data
             document.getElementById('tx-value').value = tx.value;
             document.getElementById('tx-date').value = tx.date;
             document.getElementById('tx-desc').value = tx.desc;
 
-            // 3. Preenche a categoria (Garante que se foi apagada das configs, ela apareça na lista de edição)
             const catSelect = document.getElementById('tx-category');
             if (!Array.from(catSelect.options).some(opt => opt.value === tx.category)) {
                 catSelect.innerHTML += `<option value="${tx.category}">${tx.category}</option>`;
             }
             catSelect.value = tx.category;
 
-            // 4. Preenche a forma de pagamento
             const paySelect = document.getElementById('tx-payment');
             if (!Array.from(paySelect.options).some(opt => opt.value === tx.payment) && tx.payment) {
                 paySelect.innerHTML += `<option value="${tx.payment}">${tx.payment}</option>`;
             }
             paySelect.value = tx.payment || state.paymentMethods[0];
 
-            // 5. Marca o responsável
             document.querySelector(`input[name="owner"][value="${tx.owner}"]`).checked = true;
 
-            // 6. Altera o visual do botão principal e exibe o cancelar
             document.getElementById('form-title').innerText = "Editar Lançamento";
             const btnSubmit = document.getElementById('btn-submit-tx');
             btnSubmit.innerHTML = "Atualizar Lançamento";
@@ -653,7 +677,6 @@
             
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
-            // 7. Volta para a aba de Lançamento (Dashboard) e rola a tela para o topo
             switchTab('dashboard');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -661,7 +684,6 @@
         function cancelarEdicao() {
             idSendoEditado = null;
             
-            // Restaura o visual dos botões e título
             document.getElementById('form-title').innerText = "Novo Lançamento";
             const btnSubmit = document.getElementById('btn-submit-tx');
             btnSubmit.innerHTML = "Salvar Lançamento";
@@ -670,7 +692,6 @@
             
             document.getElementById('btn-cancel-edit').classList.add('hidden');
             
-            // Limpa os campos
             document.getElementById('tx-desc').value = '';
             document.getElementById('tx-value').value = '';
             document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
@@ -679,17 +700,25 @@
         function deleteTransaction(id) {
             if(confirm("Remover permanentemente?")) {
                 state.transactions = state.transactions.filter(t => t.id !== id);
-                if (idSendoEditado === id) cancelarEdicao(); // Se apagou o item que estava editando, cancela
+                if (idSendoEditado === id) cancelarEdicao(); 
                 saveToCloud();
             }
         }
 
         function getFilteredTransactions() {
-            if (state.period === 'all') return state.transactions;
-            const now = new Date();
+            const monthSelect = document.getElementById('filter-month').value;
+            const yearSelect = document.getElementById('filter-year').value;
+
             return state.transactions.filter(t => {
+                if (!t.date) return false;
                 const [y, m] = t.date.split('-');
-                return parseInt(y) === now.getFullYear() && parseInt(m) - 1 === now.getMonth();
+                
+                if (yearSelect === 'all') return true; 
+                
+                const passYear = (y === yearSelect);
+                const passMonth = (monthSelect === 'all') || (m === monthSelect);
+                
+                return passYear && passMonth;
             });
         }
 
@@ -710,7 +739,6 @@
                     const dt = t.date.split('-');
                     const pagtoLabel = t.payment || 'Não informado';
                     
-                    // Adicionado os dois botões: Editar (Lápis) e Excluir (Lixeira/X)
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50/50">
                             <td class="py-3 px-6 text-xs text-slate-500">${dt[2]}/${dt[1]}/${dt[0]}</td>
