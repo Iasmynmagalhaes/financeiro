@@ -17,6 +17,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 relative">
 
+    <!-- TELA DE LOGIN -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 transition-all duration-500 hidden">
         <div class="bg-white max-w-sm w-full rounded-3xl p-8 shadow-2xl text-center">
             <div class="bg-emerald-100 text-emerald-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
@@ -38,6 +39,7 @@
         </div>
     </div>
 
+    <!-- TELA DE CARREGAMENTO INICIAL -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="text-center">
             <span class="relative flex h-10 w-10 mx-auto mb-4">
@@ -48,6 +50,7 @@
         </div>
     </div>
 
+    <!-- Header do App -->
     <header id="app-header" class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm hidden opacity-0 transition-opacity duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -112,7 +115,9 @@
         </div>
     </header>
 
+    <!-- Conteúdo Principal do App -->
     <main id="app-main" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 hidden opacity-0 transition-opacity duration-500">
+        <!-- Cards de Resumo -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                 <div><p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Receita Total</p><h3 class="text-2xl font-bold text-slate-900 mt-1" id="sum-receitas">R$ 0,00</h3></div>
@@ -133,6 +138,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulário de Lançamento -->
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
                 <div class="flex items-center gap-2 mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -204,6 +210,7 @@
                 </form>
             </div>
 
+            <!-- Dashboards e Listagem -->
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex gap-2">
                     <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-emerald-50 text-emerald-600 shadow-sm">Dashboard Visual</button>
@@ -211,8 +218,11 @@
                     <button onclick="switchTab('config')" id="tab-btn-config" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50">Configurações</button>
                 </div>
 
+                <!-- Painel 1: Dashboard -->
                 <div id="panel-dashboard" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Despesas -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                             <h3 class="text-sm font-bold text-slate-800 mb-4">Despesas por Categoria</h3>
                             <div class="relative w-full aspect-square max-h-[250px] mx-auto flex items-center justify-center">
@@ -221,6 +231,25 @@
                             </div>
                         </div>
 
+                        <!-- Receitas -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Receitas por Categoria</h3>
+                            <div class="relative w-full aspect-square max-h-[250px] mx-auto flex items-center justify-center">
+                                <canvas id="chart-receitas"></canvas>
+                                <div id="no-receitas-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-medium hidden">Sem receitas registradas.</div>
+                            </div>
+                        </div>
+
+                        <!-- Investimentos -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Investimentos por Categoria</h3>
+                            <div class="relative w-full aspect-square max-h-[250px] mx-auto flex items-center justify-center">
+                                <canvas id="chart-investimentos"></canvas>
+                                <div id="no-investimentos-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-medium hidden">Sem investimentos registrados.</div>
+                            </div>
+                        </div>
+
+                        <!-- Divisão de Saídas -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                             <div><h3 class="text-sm font-bold text-slate-800 mb-2">Divisão de Saídas</h3></div>
                             <div class="relative w-full aspect-square max-h-[180px] mx-auto flex items-center justify-center">
@@ -233,6 +262,16 @@
                                 <div><span class="block text-[10px] text-slate-400">Ambos</span><span id="stat-both" class="text-slate-900 font-bold">R$ 0,00</span></div>
                             </div>
                         </div>
+                        
+                        <!-- Formas de Pagamento -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm md:col-span-2">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Saídas por Forma de Pagamento</h3>
+                            <div class="relative w-full h-[200px] mx-auto flex items-center justify-center">
+                                <canvas id="chart-payments"></canvas>
+                                <div id="no-payment-data" class="absolute inset-0 flex items-center justify-center bg-white/95 text-xs text-slate-400 font-medium hidden">Sem dados registrados.</div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 p-5 rounded-2xl">
@@ -246,6 +285,7 @@
                     </div>
                 </div>
 
+                <!-- Painel 2: Histórico -->
                 <div id="panel-historico" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hidden">
                     <div class="p-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <h3 class="text-base font-bold text-slate-900">Histórico de Transações</h3>
@@ -271,6 +311,7 @@
                     <div id="empty-state-table" class="p-12 text-center hidden"><p class="text-sm font-semibold text-slate-500">Nenhum lançamento encontrado para o período selecionado.</p></div>
                 </div>
 
+                <!-- Painel 3: Configurações -->
                 <div id="panel-config" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hidden space-y-6">
                     <div><h3 class="text-base font-bold text-slate-900">Identificação do Casal</h3></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -347,13 +388,16 @@
         };
 
         let chartCategoriesObj = null;
+        let chartReceitasObj = null;
+        let chartInvestimentosObj = null;
         let chartOwnersObj = null;
+        let chartPaymentsObj = null;
         let unsubscribeSnapshot = null;
         let idSendoEditado = null; 
 
         // --- 3. AUTENTICAÇÃO E CARREGAMENTO ---
         window.addEventListener('load', () => {
-            setPeriodCurrent(); // Inicializa os dropdowns de data
+            setPeriodCurrent(); 
             
             auth.onAuthStateChanged((user) => {
                 const loadingScreen = document.getElementById('loading-screen');
@@ -782,6 +826,7 @@
             document.getElementById('sum-investimentos').innerText = `R$ ${inv.toFixed(2).replace('.', ',')}`;
             document.getElementById('sum-saldo').innerText = `R$ ${(rec - des - inv).toFixed(2).replace('.', ',')}`;
             
+            // Gráfico 1: Despesas por Categoria
             const despesasTxs = txs.filter(t => t.type === 'despesa');
             const catSums = {};
             despesasTxs.forEach(t => { catSums[t.category] = (catSums[t.category] || 0) + t.value; });
@@ -792,11 +837,44 @@
                 document.getElementById('no-category-data').classList.add('hidden');
                 chartCategoriesObj = new Chart(ctxCat, {
                     type: 'doughnut',
-                    data: { labels: Object.keys(catSums), datasets: [{ data: Object.values(catSums), backgroundColor: ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] }] },
+                    data: { labels: Object.keys(catSums), datasets: [{ data: Object.values(catSums), backgroundColor: ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#6366f1', '#06b6d4', '#a855f7'] }] },
                     options: { maintainAspectRatio: false, cutout: '65%' }
                 });
             } else document.getElementById('no-category-data').classList.remove('hidden');
 
+            // Gráfico NOVO: Receitas por Categoria
+            const receitasTxs = txs.filter(t => t.type === 'receita');
+            const recSums = {};
+            receitasTxs.forEach(t => { recSums[t.category] = (recSums[t.category] || 0) + t.value; });
+            
+            if(chartReceitasObj) chartReceitasObj.destroy();
+            const ctxRec = document.getElementById('chart-receitas').getContext('2d');
+            if(Object.keys(recSums).length > 0) {
+                document.getElementById('no-receitas-data').classList.add('hidden');
+                chartReceitasObj = new Chart(ctxRec, {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(recSums), datasets: [{ data: Object.values(recSums), backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#059669', '#047857'] }] },
+                    options: { maintainAspectRatio: false, cutout: '65%' }
+                });
+            } else document.getElementById('no-receitas-data').classList.remove('hidden');
+
+            // Gráfico NOVO: Investimentos por Categoria
+            const investimentosTxs = txs.filter(t => t.type === 'investimento');
+            const invSums = {};
+            investimentosTxs.forEach(t => { invSums[t.category] = (invSums[t.category] || 0) + t.value; });
+            
+            if(chartInvestimentosObj) chartInvestimentosObj.destroy();
+            const ctxInv = document.getElementById('chart-investimentos').getContext('2d');
+            if(Object.keys(invSums).length > 0) {
+                document.getElementById('no-investimentos-data').classList.add('hidden');
+                chartInvestimentosObj = new Chart(ctxInv, {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(invSums), datasets: [{ data: Object.values(invSums), backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#4f46e5', '#4338ca'] }] },
+                    options: { maintainAspectRatio: false, cutout: '65%' }
+                });
+            } else document.getElementById('no-investimentos-data').classList.remove('hidden');
+
+            // Gráfico: Divisão de Saídas
             const outflows = txs.filter(t => t.type !== 'receita');
             let [p1Sum, p2Sum, bothSum] = [0, 0, 0];
             outflows.forEach(t => {
@@ -820,6 +898,39 @@
                 });
             } else document.getElementById('no-owner-data').classList.remove('hidden');
 
+            // Gráfico: Formas de Pagamento
+            const paySums = {};
+            outflows.forEach(t => {
+                const method = t.payment || 'Não informado';
+                paySums[method] = (paySums[method] || 0) + t.value;
+            });
+            
+            if(chartPaymentsObj) chartPaymentsObj.destroy();
+            const ctxPay = document.getElementById('chart-payments').getContext('2d');
+            if(Object.keys(paySums).length > 0) {
+                document.getElementById('no-payment-data').classList.add('hidden');
+                chartPaymentsObj = new Chart(ctxPay, {
+                    type: 'bar',
+                    data: { 
+                        labels: Object.keys(paySums), 
+                        datasets: [{ 
+                            data: Object.values(paySums), 
+                            backgroundColor: '#14b8a6',
+                            borderRadius: 4
+                        }] 
+                    },
+                    options: { 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { font: { size: 10, family: 'Plus Jakarta Sans' } } },
+                            x: { ticks: { font: { size: 10, family: 'Plus Jakarta Sans' } } }
+                        }
+                    }
+                });
+            } else document.getElementById('no-payment-data').classList.remove('hidden');
+
+            // Acerto de Contas
             const divContainer = document.getElementById('divisao-contas-container');
             const totalComum = txs.filter(t => t.type !== 'receita' && t.owner === 'Ambos').reduce((a, c) => a + c.value, 0);
             if(totalComum === 0) {
