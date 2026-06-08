@@ -116,7 +116,7 @@
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
                 <div class="flex items-center gap-2 mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <h2 class="text-lg font-bold text-slate-900">Novo Lançamento</h2>
+                    <h2 class="text-lg font-bold text-slate-900" id="form-title">Novo Lançamento</h2>
                 </div>
 
                 <form id="transaction-form" onsubmit="addTransaction(event)" class="space-y-4">
@@ -177,7 +177,10 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 active:translate-y-[1px] text-white font-semibold rounded-xl py-3 text-sm transition-all shadow-md flex items-center justify-center gap-2">Salvar Lançamento</button>
+                    <div class="flex gap-2 pt-2">
+                        <button type="submit" id="btn-submit-tx" class="flex-1 bg-emerald-500 hover:bg-emerald-600 active:translate-y-[1px] text-white font-semibold rounded-xl py-3 text-sm transition-all shadow-md flex items-center justify-center gap-2">Salvar Lançamento</button>
+                        <button type="button" id="btn-cancel-edit" onclick="cancelarEdicao()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl px-4 py-3 text-sm transition-all shadow-sm">Cancelar</button>
+                    </div>
                 </form>
             </div>
 
@@ -280,7 +283,6 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="categories-lists-container"></div>
                     </div>
                     
-                    <!-- Novo painel: Gerenciar Formas de Pagamento -->
                     <div class="border-t border-slate-100 pt-5">
                         <h4 class="text-sm font-bold text-slate-900 mb-4">Gerenciar Formas de Pagamento</h4>
                         <div class="flex gap-2 mb-4">
@@ -332,6 +334,9 @@
         let chartCategoriesObj = null;
         let chartOwnersObj = null;
         let unsubscribeSnapshot = null;
+        
+        // VARIÁVEL DE CONTROLE DE EDIÇÃO
+        let idSendoEditado = null; 
 
         // --- 3. AUTENTICAÇÃO FIREBASE ---
         auth.onAuthStateChanged((user) => {
@@ -409,7 +414,6 @@
                 if (doc.exists) {
                     const data = doc.data();
                     state = { ...state, ...data };
-                    // Garante que array de pagamentos exista mesmo em contas antigas
                     if(!state.paymentMethods || state.paymentMethods.length === 0) {
                         state.paymentMethods = ["Dinheiro", "Cartão de Débito", "Cartão de Crédito", "Pix"];
                     }
@@ -505,14 +509,20 @@
         }
 
         function updatePaymentMethodsUI() {
-            // Atualiza select no formulário
             const selectPayment = document.getElementById('tx-payment');
+            // Salva o valor atual para tentar manter ao atualizar a lista
+            const valorAtual = selectPayment.value;
+            
             selectPayment.innerHTML = '';
             state.paymentMethods.forEach(p => {
                 selectPayment.innerHTML += `<option value="${p}">${p}</option>`;
             });
+            
+            // Restaura o valor se ele ainda existir na lista
+            if (valorAtual && state.paymentMethods.includes(valorAtual)) {
+                selectPayment.value = valorAtual;
+            }
 
-            // Atualiza lista na aba Configurações
             const list = document.getElementById('payment-methods-list');
             list.innerHTML = '';
             state.paymentMethods.forEach(p => {
@@ -563,12 +573,14 @@
             saveToCloud();
         }
 
-        // --- 6. TRANSAÇÕES ---
+        // --- 6. TRANSAÇÕES E EDIÇÃO ---
         function addTransaction(e) {
             e.preventDefault();
             const type = document.querySelector('input[name="type"]:checked').value;
-            const newTx = {
-                id: Date.now(),
+            
+            const novoLancamento = {
+                // Se estiver editando, mantém o ID original. Se não, gera um novo.
+                id: idSendoEditado ? idSendoEditado : Date.now(),
                 type,
                 value: parseFloat(document.getElementById('tx-value').value),
                 date: document.getElementById('tx-date').value,
@@ -577,17 +589,97 @@
                 payment: document.getElementById('tx-payment').value,
                 owner: document.querySelector('input[name="owner"]:checked').value
             };
-            if(!newTx.category) newTx.category = "Sem categoria";
-            state.transactions.unshift(newTx);
+            
+            if(!novoLancamento.category) novoLancamento.category = "Sem categoria";
+            
+            if (idSendoEditado) {
+                // Modo Edição: Encontra onde está o item na lista e substitui
+                const index = state.transactions.findIndex(t => t.id === idSendoEditado);
+                if (index !== -1) {
+                    state.transactions[index] = novoLancamento;
+                }
+                showToast("Lançamento atualizado!", "success");
+                cancelarEdicao(); // Limpa e volta o botão ao normal
+            } else {
+                // Modo Novo Lançamento: Adiciona no topo da lista
+                state.transactions.unshift(novoLancamento);
+                showToast("Lançamento salvo na nuvem!", "success");
+                document.getElementById('tx-desc').value = '';
+                document.getElementById('tx-value').value = '';
+            }
+            
             saveToCloud();
+        }
+
+        function iniciarEdicao(id) {
+            // Encontra a transação completa pelo ID
+            const tx = state.transactions.find(t => t.id === id);
+            if (!tx) return;
+
+            idSendoEditado = id;
+
+            // 1. Marca o Tipo (Despesa, Receita, Investimento) e atualiza as categorias compatíveis
+            document.querySelector(`input[name="type"][value="${tx.type}"]`).checked = true;
+            updateFormType(); 
+
+            // 2. Preenche os campos de texto e data
+            document.getElementById('tx-value').value = tx.value;
+            document.getElementById('tx-date').value = tx.date;
+            document.getElementById('tx-desc').value = tx.desc;
+
+            // 3. Preenche a categoria (Garante que se foi apagada das configs, ela apareça na lista de edição)
+            const catSelect = document.getElementById('tx-category');
+            if (!Array.from(catSelect.options).some(opt => opt.value === tx.category)) {
+                catSelect.innerHTML += `<option value="${tx.category}">${tx.category}</option>`;
+            }
+            catSelect.value = tx.category;
+
+            // 4. Preenche a forma de pagamento
+            const paySelect = document.getElementById('tx-payment');
+            if (!Array.from(paySelect.options).some(opt => opt.value === tx.payment) && tx.payment) {
+                paySelect.innerHTML += `<option value="${tx.payment}">${tx.payment}</option>`;
+            }
+            paySelect.value = tx.payment || state.paymentMethods[0];
+
+            // 5. Marca o responsável
+            document.querySelector(`input[name="owner"][value="${tx.owner}"]`).checked = true;
+
+            // 6. Altera o visual do botão principal e exibe o cancelar
+            document.getElementById('form-title').innerText = "Editar Lançamento";
+            const btnSubmit = document.getElementById('btn-submit-tx');
+            btnSubmit.innerHTML = "Atualizar Lançamento";
+            btnSubmit.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+            btnSubmit.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+            // 7. Volta para a aba de Lançamento (Dashboard) e rola a tela para o topo
+            switchTab('dashboard');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            idSendoEditado = null;
+            
+            // Restaura o visual dos botões e título
+            document.getElementById('form-title').innerText = "Novo Lançamento";
+            const btnSubmit = document.getElementById('btn-submit-tx');
+            btnSubmit.innerHTML = "Salvar Lançamento";
+            btnSubmit.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btnSubmit.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+            
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            
+            // Limpa os campos
             document.getElementById('tx-desc').value = '';
             document.getElementById('tx-value').value = '';
-            showToast("Lançamento enviado para a nuvem!", "success");
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
         }
 
         function deleteTransaction(id) {
             if(confirm("Remover permanentemente?")) {
                 state.transactions = state.transactions.filter(t => t.id !== id);
+                if (idSendoEditado === id) cancelarEdicao(); // Se apagou o item que estava editando, cancela
                 saveToCloud();
             }
         }
@@ -618,6 +710,7 @@
                     const dt = t.date.split('-');
                     const pagtoLabel = t.payment || 'Não informado';
                     
+                    // Adicionado os dois botões: Editar (Lápis) e Excluir (Lixeira/X)
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50/50">
                             <td class="py-3 px-6 text-xs text-slate-500">${dt[2]}/${dt[1]}/${dt[0]}</td>
@@ -630,7 +723,16 @@
                             <td class="py-3 px-6 text-right font-bold ${t.type === 'receita' ? 'text-emerald-600' : (t.type === 'despesa' ? 'text-rose-600' : 'text-indigo-600')}">
                                 ${t.type === 'despesa' ? '-' : ''}R$ ${t.value.toFixed(2).replace('.', ',')}
                             </td>
-                            <td class="py-3 px-6 text-center"><button onclick="deleteTransaction(${t.id})" class="text-rose-500 hover:text-rose-700 font-bold">X</button></td>
+                            <td class="py-3 px-6 text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                    <button onclick="iniciarEdicao(${t.id})" class="text-blue-500 hover:text-blue-700 transition-all" title="Editar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    </button>
+                                    <button onclick="deleteTransaction(${t.id})" class="text-rose-500 hover:text-rose-700 transition-all" title="Excluir">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     `;
                 });
